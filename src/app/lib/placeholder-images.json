@@ -1,0 +1,46 @@
+{
+  "placeholderImages": [
+    {
+      "id": "hero-resort",
+      "description": "Tropical resort with palm trees and a beautiful sunset",
+      "imageUrl": "https://picsum.photos/seed/bella1/1920/1080",
+      "imageHint": "tropical resort"
+    },
+    {
+      "id": "kubo-facility",
+      "description": "Traditional Philippine Kubo accommodation",
+      "imageUrl": "https://picsum.photos/seed/kubo/800/600",
+      "imageHint": "bamboo hut"
+    },
+    {
+      "id": "pool-side",
+      "description": "Crystal clear resort swimming pool",
+      "imageUrl": "https://picsum.photos/seed/pool/800/600",
+      "imageHint": "swimming pool"
+    },
+    {
+      "id": "cabana-resort",
+      "description": "Luxury cabana near the garden",
+      "imageUrl": "https://picsum.photos/seed/cabana/800/600",
+      "imageHint": "garden cabana"
+    },
+    {
+      "id": "hall-event",
+      "description": "Spacious event hall for gatherings",
+      "imageUrl": "https://picsum.photos/seed/hall/800/600",
+      "imageHint": "event hall"
+    },
+    {
+      "id": "farm-view",
+      "description": "Scenic view of the farm resort landscape",
+      "imageUrl": "https://picsum.photos/seed/farm/800/600",
+      "imageHint": "farm landscape"
+    },
+    {
+      "id": "user-avatar",
+      "description": "User profile avatar placeholder",
+      "imageUrl": "https://picsum.photos/seed/avatar/200/200",
+      "imageHint": "profile person"
+    }
+  ]
+}

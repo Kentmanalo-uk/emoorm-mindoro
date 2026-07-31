@@ -1,0 +1,305 @@
+
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the Bella's Booking Bliss application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The user's first name."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The user's last name."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "mobile": {
+          "type": "string",
+          "description": "The user's mobile phone number."
+        },
+        "address": {
+          "type": "string",
+          "description": "The user's address."
+        },
+        "profilePictureUrl": {
+          "type": "string",
+          "description": "URL to the user's profile picture.",
+          "format": "uri"
+        },
+        "qrCode": {
+          "type": "string",
+          "description": "QR Code for user profile."
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "email",
+        "mobile"
+      ]
+    },
+    "Facility": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Facility",
+      "type": "object",
+      "description": "Represents a facility at Bella's Paradise Farm Resort (e.g., Kubo, Cabana, Room, Hall, House).",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the facility."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the facility (e.g., Kubo 1, Cabana A)."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the facility."
+        },
+        "capacity": {
+          "type": "number",
+          "description": "The maximum number of guests the facility can accommodate."
+        },
+        "pricePerNight": {
+          "type": "number",
+          "description": "The price per night to book the facility."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL to an image of the facility.",
+          "format": "uri"
+        },
+        "status": {
+          "type": "string",
+          "description": "The status of the facility (e.g., Available, Under Maintenance)."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "capacity",
+        "pricePerNight",
+        "imageUrl",
+        "status"
+      ]
+    },
+    "Booking": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Booking",
+      "type": "object",
+      "description": "Represents a booking made by a guest for a facility.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the booking."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Booking)"
+        },
+        "facilityId": {
+          "type": "string",
+          "description": "Reference to Facility. (Relationship: Facility 1:N Booking)"
+        },
+        "startDate": {
+          "type": "string",
+          "description": "The start date of the booking.",
+          "format": "date-time"
+        },
+        "endDate": {
+          "type": "string",
+          "description": "The end date of the booking.",
+          "format": "date-time"
+        },
+        "numberOfGuests": {
+          "type": "number",
+          "description": "The number of guests included in the booking."
+        },
+        "specialRequests": {
+          "type": "string",
+          "description": "Any special requests made by the guest."
+        },
+        "totalPrice": {
+          "type": "number",
+          "description": "The total price of the booking."
+        },
+        "status": {
+          "type": "string",
+          "description": "The status of the booking (e.g., Pending, Confirmed, Completed, Cancelled)."
+        },
+        "bookingDate": {
+          "type": "string",
+          "description": "The date and time the booking was made.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "facilityId",
+        "startDate",
+        "endDate",
+        "numberOfGuests",
+        "totalPrice",
+        "status"
+      ]
+    },
+    "Message": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Message",
+      "type": "object",
+      "description": "Represents a message exchanged between a guest and an administrator.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the message."
+        },
+        "senderId": {
+          "type": "string",
+          "description": "Reference to User who sent the message. Could be guest or admin. (Relationship: User 1:N Message (sent))"
+        },
+        "recipientId": {
+          "type": "string",
+          "description": "Reference to User who receives the message. Could be guest or admin. (Relationship: User 1:N Message (received))"
+        },
+        "content": {
+          "type": "string",
+          "description": "The content of the message."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The timestamp when the message was sent.",
+          "format": "date-time"
+        },
+        "isRead": {
+          "type": "boolean",
+          "description": "Indicates whether the message has been read."
+        }
+      },
+      "required": [
+        "id",
+        "senderId",
+        "recipientId",
+        "content",
+        "timestamp",
+        "isRead"
+      ]
+    },
+    "Notification": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Notification",
+      "type": "object",
+      "description": "Represents a system notification for a user.",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "type": { "type": "string", "enum": ["booking", "system", "promo"] },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "isRead": { "type": "boolean" }
+      },
+      "required": ["id", "title", "content", "type", "timestamp", "isRead"]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles.",
+          "params": [
+            { "name": "userId", "description": "The unique identifier for the user." }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/notifications/{notificationId}",
+        "definition": {
+          "entityName": "Notification",
+          "schema": { "$ref": "#/backend/entities/Notification" },
+          "description": "Stores user-specific notifications.",
+          "params": [
+            { "name": "userId", "description": "The unique identifier for the user." },
+            { "name": "notificationId", "description": "The unique identifier for the notification." }
+          ]
+        }
+      },
+      {
+        "path": "/facilities/{facilityId}",
+        "definition": {
+          "entityName": "Facility",
+          "schema": {
+            "$ref": "#/backend/entities/Facility"
+          },
+          "description": "Stores facility information.",
+          "params": [
+            { "name": "facilityId", "description": "The unique identifier for the facility." }
+          ]
+        }
+      },
+      {
+        "path": "/bookings/{bookingId}",
+        "definition": {
+          "entityName": "Booking",
+          "schema": {
+            "$ref": "#/backend/entities/Booking"
+          },
+          "description": "Stores booking information.",
+          "params": [
+            { "name": "bookingId", "description": "The unique identifier for the booking." }
+          ]
+        }
+      },
+      {
+        "path": "/messages/{messageId}",
+        "definition": {
+          "entityName": "Message",
+          "schema": {
+            "$ref": "#/backend/entities/Message"
+          },
+          "description": "Stores messages between users.",
+          "params": [
+            { "name": "messageId", "description": "The unique identifier for the message." }
+          ]
+        }
+      },
+      {
+        "path": "/roles_admin/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Collection to store admin user IDs.",
+          "params": [
+            { "name": "userId", "description": "The unique identifier for the user (admin)." }
+          ]
+        }
+      }
+    ],
+    "reasoning": "Standard Firestore structure for a booking app, now including sub-collections for notifications to ensure private, path-based access."
+  }
+}
