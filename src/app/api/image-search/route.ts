@@ -21,13 +21,23 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { supabaseConfig } from "@/supabase/config";
+
+export const dynamic = "force-dynamic";
 
 // ── Supabase (service-role for reading facilities) ───────────────────────────
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
+let _supabase: SupabaseClient | null = null;
+function getSupabase(): SupabaseClient {
+  if (_supabase) return _supabase;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || supabaseConfig.url;
+  const key =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    supabaseConfig.anonKey;
+  _supabase = createClient(url, key);
+  return _supabase;
+}
 
 // ── Histogram parameters ─────────────────────────────────────────────────────
 const HUE_BINS = 18;   // 0-360 → 18 bins of 20° each
@@ -124,7 +134,7 @@ export async function POST(req: NextRequest) {
     const queryHist = await buildHistogram(queryBuffer);
 
     // 2. Fetch product list from Supabase
-    const { data: products, error } = await supabase
+    const { data: products, error } = await getSupabase()
       .from("facilities")
       .select("id, name, imageUrl, category")
       .not("imageUrl", "is", null)

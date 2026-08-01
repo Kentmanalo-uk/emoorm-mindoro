@@ -69,7 +69,6 @@ type BrowseTab = "products" | "stores" | "map";
 const bannerSlides = [
   { src: "/assets/banners/discover-mindoro.png", alt: "Discover Mindoro" },
   { src: "/assets/banners/banner-qoute.png", alt: "Emoorm Banner" },
-  { src: "/assets/banners/season-banner.png", alt: "Season Sale" },
   { src: "/assets/banners/buy-now-qoute.png", alt: "Buy Now" },
 ];
 // Clone last?front and first?back for bi-directional infinite loop
