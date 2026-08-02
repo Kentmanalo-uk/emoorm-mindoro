@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -9,7 +9,7 @@ import { useUser, useSupabase } from "@/supabase";
 import { initiateEmailSignIn, initiateGoogleSignInPopup } from "@/supabase/auth";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -105,6 +105,15 @@ export default function LoginPage() {
           style={{
             background:
               "radial-gradient(circle at 20% 25%, rgba(125,255,184,0.18), transparent 55%), radial-gradient(circle at 80% 75%, rgba(255,255,255,0.08), transparent 60%)",
+          }}
+        />
+        {/* Faint grid (spans full width) */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.06]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.9) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.9) 1px, transparent 1px)",
+            backgroundSize: "28px 28px",
           }}
         />
 
@@ -317,5 +326,13 @@ export default function LoginPage() {
       )}
 
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }

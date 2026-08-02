@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import {
   Home,
   ShoppingCart,
-  ShoppingBag,
   MessageSquare,
   Bell,
   LogOut,
@@ -21,10 +20,6 @@ import {
   Tag,
   TrendingUp,
   Camera,
-  Store,
-  BarChart3,
-  Wallet,
-  ArrowRight,
 } from "lucide-react";
 import {
   useDoc,
@@ -36,150 +31,6 @@ import {
 import { useLanguage, type Lang } from "@/contexts/language-context";
 import Image from "next/image";
 import { useIsAdmin } from "@/hooks/use-is-admin";
-
-type AuthPanelLink = { label: string; target: string };
-type AuthPanelColumn = { title: string; links: AuthPanelLink[] };
-
-function TopBarAuthLink({
-  triggerHref,
-  label,
-  columns,
-}: {
-  triggerHref: string;
-  label: string;
-  columns: AuthPanelColumn[];
-}) {
-  const [open, setOpen] = useState(false);
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const cancelClose = () => {
-    if (closeTimer.current) {
-      clearTimeout(closeTimer.current);
-      closeTimer.current = null;
-    }
-  };
-  const scheduleClose = () => {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(() => setOpen(false), 140);
-  };
-
-  // Not signed in — every link routes through /login with the intended target.
-  const loginHref = (target: string) =>
-    `/login?redirect=${encodeURIComponent(target)}`;
-
-  return (
-    <div
-      style={{
-        position: "relative",
-        display: "inline-flex",
-        // Expand hover hit-area so users don't need to hit the tiny link exactly
-        padding: "8px 6px",
-        margin: "-8px -6px",
-      }}
-      onMouseEnter={() => {
-        cancelClose();
-        setOpen(true);
-      }}
-      onMouseLeave={scheduleClose}
-    >
-      <Link href={triggerHref}>{label}</Link>
-
-      <div
-        style={{
-          position: "absolute",
-          top: "100%",
-          right: 0,
-          paddingTop: 10,
-          width: 460,
-          zIndex: 1200,
-          opacity: open ? 1 : 0,
-          transform: open ? "translateY(0)" : "translateY(-6px)",
-          pointerEvents: open ? "auto" : "none",
-          transition: "opacity 180ms ease, transform 180ms ease",
-        }}
-        onMouseEnter={cancelClose}
-        onMouseLeave={scheduleClose}
-      >
-        <div
-          style={{
-            background: "#fff",
-            color: "#111",
-            borderRadius: 10,
-            border: "1px solid rgba(0,0,0,0.08)",
-            boxShadow: "0 20px 50px -15px rgba(0,0,0,0.25)",
-            padding: "18px 20px 16px",
-          }}
-        >
-          {/* Sign-in CTA */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-            <Link
-              href="/login"
-              style={{
-                display: "flex",
-                width: "100%",
-                maxWidth: 260,
-                height: 40,
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: 6,
-                background: "#29a366",
-                color: "#fff",
-                fontSize: 13.5,
-                fontWeight: 700,
-                textDecoration: "none",
-              }}
-            >
-              Sign in
-            </Link>
-            <p style={{ fontSize: 12, color: "#555", margin: 0 }}>
-              New customer?{" "}
-              <Link href="/signup" style={{ color: "#0a66c2", textDecoration: "none" }}>
-                Start here.
-              </Link>
-            </p>
-          </div>
-
-          <div style={{ height: 1, background: "rgba(0,0,0,0.08)", margin: "14px 0 12px" }} />
-
-          {/* Two-column link grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
-            {columns.map((col) => (
-              <div key={col.title}>
-                <p style={{ fontSize: 14, fontWeight: 700, color: "#111", margin: "0 0 8px" }}>
-                  {col.title}
-                </p>
-                <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 6 }}>
-                  {col.links.map((l) => (
-                    <li key={l.label}>
-                      <Link
-                        href={loginHref(l.target)}
-                        style={{
-                          fontSize: 13,
-                          color: "#333",
-                          textDecoration: "none",
-                          display: "inline-block",
-                        }}
-                        onMouseEnter={(e) => {
-                          (e.currentTarget as HTMLAnchorElement).style.color = "#29a366";
-                          (e.currentTarget as HTMLAnchorElement).style.textDecoration = "underline";
-                        }}
-                        onMouseLeave={(e) => {
-                          (e.currentTarget as HTMLAnchorElement).style.color = "#333";
-                          (e.currentTarget as HTMLAnchorElement).style.textDecoration = "none";
-                        }}
-                      >
-                        {l.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function HeaderContent() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -621,34 +472,18 @@ function HeaderContent() {
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const mobileOverlayRef = useRef<HTMLDivElement>(null);
 
-  // Auto-hide top bar on scroll down, reveal on scroll up (rAF-throttled)
+  // Auto-hide top bar on scroll down, reveal on scroll up
   const [topBarVisible, setTopBarVisible] = useState(true);
   useEffect(() => {
     let lastY = window.scrollY;
-    let ticking = false;
-    let visible = true;
-    const THRESHOLD = 6; // hysteresis: ignore sub-pixel jitter
-    const REVEAL_AT = 40; // always show near the top
-    const update = () => {
-      ticking = false;
+    const onScroll = () => {
       const y = window.scrollY;
-      const dy = y - lastY;
-      if (y <= REVEAL_AT) {
-        if (!visible) { visible = true; setTopBarVisible(true); }
-      } else if (dy > THRESHOLD && visible) {
-        visible = false;
+      if (y > lastY && y > 40) {
         setTopBarVisible(false);
-      } else if (dy < -THRESHOLD && !visible) {
-        visible = true;
+      } else {
         setTopBarVisible(true);
       }
       lastY = y;
-    };
-    const onScroll = () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(update);
-      }
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -884,11 +719,10 @@ function HeaderContent() {
       {/* Top Bar */}
       <div
         className={isHome ? "top-bar" : "top-bar static-header"}
-        style={isHome ? {
+        style={{
           transform: topBarVisible ? "translateY(0)" : "translateY(-100%)",
-          transition: "transform 260ms cubic-bezier(0.22, 1, 0.36, 1)",
-          willChange: "transform",
-        } : undefined}
+          transition: "transform 0.25s ease",
+        }}
       >
         <div className="top-bar-inner">
           <div className="top-bar-left">
@@ -1030,71 +864,9 @@ function HeaderContent() {
               </div>
             ) : (
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <TopBarAuthLink
-                  triggerHref="/login"
-                  label={t("topbar.signin")}
-                  columns={[
-                    {
-                      title: "Your Lists",
-                      links: [
-                        { label: "Wishlist", target: "/wishlist" },
-                        { label: "Followed Stores", target: "/stores" },
-                        { label: "My Reviews", target: "/my-reviews" },
-                      ],
-                    },
-                    {
-                      title: "Your Account",
-                      links: [
-                        { label: "Account", target: "/profile" },
-                        { label: "Orders", target: "/orders" },
-                        { label: "Messages", target: "/messages" },
-                        { label: "Notifications", target: "/notifications" },
-                        { label: "My Addresses", target: "/my-addresses" },
-                        { label: "My Bookings", target: "/my-bookings" },
-                        { label: "Cart", target: "/cart" },
-                        { label: "Settings", target: "/settings" },
-                        { label: "Sell on Emoorm", target: "/sell" },
-                      ],
-                    },
-                  ]}
-                />
-                <span
-                  aria-hidden
-                  style={{
-                    display: "inline-block",
-                    width: 1,
-                    height: 14,
-                    background: "rgba(255,255,255,0.3)",
-                  }}
-                />
-                <TopBarAuthLink
-                  triggerHref="/signup"
-                  label={t("topbar.signup")}
-                  columns={[
-                    {
-                      title: "Your Lists",
-                      links: [
-                        { label: "Wishlist", target: "/wishlist" },
-                        { label: "Followed Stores", target: "/stores" },
-                        { label: "My Reviews", target: "/my-reviews" },
-                      ],
-                    },
-                    {
-                      title: "Your Account",
-                      links: [
-                        { label: "Account", target: "/profile" },
-                        { label: "Orders", target: "/orders" },
-                        { label: "Messages", target: "/messages" },
-                        { label: "Notifications", target: "/notifications" },
-                        { label: "My Addresses", target: "/my-addresses" },
-                        { label: "My Bookings", target: "/my-bookings" },
-                        { label: "Cart", target: "/cart" },
-                        { label: "Settings", target: "/settings" },
-                        { label: "Sell on Emoorm", target: "/sell" },
-                      ],
-                    },
-                  ]}
-                />
+                <Link href="/login">{t("topbar.signin")}</Link>
+                <span style={{ color: "#444" }}>/</span>
+                <Link href="/signup">{t("topbar.signup")}</Link>
               </div>
             )}
           </div>
@@ -1107,11 +879,8 @@ function HeaderContent() {
           isHome ? "site-nav has-top-bar" : "site-nav has-top-bar static-header"
         }
         style={isHome ? {
-          transform: topBarVisible
-            ? "translateY(0)"
-            : "translateY(calc(-1 * var(--top-bar-height)))",
-          transition: "transform 260ms cubic-bezier(0.22, 1, 0.36, 1)",
-          willChange: "transform",
+          top: topBarVisible ? "var(--top-bar-height)" : "0",
+          transition: "top 0.25s ease",
         } : undefined}
       >
         <div className="site-nav-inner">

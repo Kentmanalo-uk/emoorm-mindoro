@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -43,7 +43,7 @@ function PasswordStrength({ password }: { password: string }) {
 const inp = "w-full border border-gray-300 rounded-none px-3.5 py-3 text-sm text-[#111] placeholder:text-gray-400 outline-none focus:border-[#29a366] focus:ring-1 focus:ring-[#29a366]/30 transition-all disabled:opacity-50";
 const lbl = "block text-xs font-semibold text-gray-500 mb-1";
 
-export default function SignUpPage() {
+function SignUpForm() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     firstName: "", lastName: "", email: "", mobile: "",
@@ -210,6 +210,15 @@ export default function SignUpPage() {
               "radial-gradient(circle at 20% 25%, rgba(125,255,184,0.18), transparent 55%), radial-gradient(circle at 80% 75%, rgba(255,255,255,0.08), transparent 60%)",
           }}
         />
+        {/* Faint grid (spans full width) */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.06]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.9) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.9) 1px, transparent 1px)",
+            backgroundSize: "28px 28px",
+          }}
+        />
 
         {/* ── Left: brand hero (hidden on mobile) ── */}
         <div
@@ -230,6 +239,12 @@ export default function SignUpPage() {
               >
                 emoorm
               </span>
+            </div>
+
+            {/* Eyebrow badge */}
+            <div className="inline-flex items-center gap-2 mb-6 pl-2 pr-3 py-1 bg-white/10 border border-white/15 backdrop-blur-sm">
+              <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#7dffb8", boxShadow: "0 0 8px #7dffb8" }} />
+              <span className="text-[11px] font-semibold tracking-[0.14em] uppercase text-white/85">New here?</span>
             </div>
 
             {/* Display headline — dynamic scale */}
@@ -256,6 +271,14 @@ export default function SignUpPage() {
               <br />
               marketplace.
             </h2>
+
+            {/* Kicker line with accent bar */}
+            <div className="flex items-start gap-4 mb-8">
+              <span className="mt-2 h-6 w-1" style={{ background: "#7dffb8" }} />
+              <p className="text-white/80 text-[15px] leading-relaxed max-w-[400px]">
+                Create your Emoorm account to shop from local sellers, follow your favorite stores, and support Mindoreño producers.
+              </p>
+            </div>
 
             {/* Stat chip strip */}
             <div className="flex items-center gap-6">
@@ -530,5 +553,13 @@ export default function SignUpPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignUpForm />
+    </Suspense>
   );
 }
