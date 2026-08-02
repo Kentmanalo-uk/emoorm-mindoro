@@ -12,6 +12,14 @@ import {
   Menu,
   X,
   ChevronDown,
+  ShoppingBag,
+  Heart,
+  Bell,
+  MessageCircle,
+  Store,
+  BarChart3,
+  Wallet,
+  Package,
 } from "lucide-react";
 
 const BENEFITS = [
@@ -238,6 +246,113 @@ function NavExpandedContent({ link }: { link: NavLink | undefined }) {
   );
 }
 
+type AuthMenuItem = { icon: React.ReactNode; label: string; target: string };
+
+function AuthHoverDropdown({
+  onClick,
+  label,
+  variant,
+  authMode,
+  title,
+  subtitle,
+  items,
+}: {
+  onClick: () => void;
+  label: string;
+  variant: "primary" | "ghost";
+  authMode: "signin" | "signup";
+  title: string;
+  subtitle: string;
+  items: AuthMenuItem[];
+}) {
+  const [open, setOpen] = useState(false);
+  const closeTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const scheduleClose = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => setOpen(false), 140);
+  };
+  const cancelClose = () => {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  };
+
+  const triggerClasses =
+    variant === "primary"
+      ? "h-10 px-5 rounded-lg text-base font-semibold text-white transition-opacity hover:opacity-90"
+      : "hidden sm:flex h-10 px-5 items-center rounded-lg border border-black/[0.10] text-base font-semibold text-[#555] hover:bg-[#f2f2f0] transition-colors";
+  const triggerStyle = variant === "primary" ? { background: "#29a366" } : undefined;
+
+  const authBase = authMode === "signin" ? "/login" : "/signup";
+  const buildHref = (target: string) =>
+    `${authBase}?redirect=${encodeURIComponent(target)}`;
+
+  return (
+    <div
+      className="relative"
+      style={{ padding: "6px 4px", margin: "-6px -4px" }}
+      onMouseEnter={() => {
+        cancelClose();
+        setOpen(true);
+      }}
+      onMouseLeave={scheduleClose}
+    >
+      <button onClick={onClick} className={triggerClasses} style={triggerStyle}>
+        {label}
+      </button>
+
+      {/* Dropdown */}
+      <div
+        className="absolute right-0 top-full pt-3 w-[340px] z-50"
+        style={{
+          opacity: open ? 1 : 0,
+          transform: open ? "translateY(0)" : "translateY(-6px)",
+          pointerEvents: open ? "auto" : "none",
+          transition: "opacity 180ms ease, transform 180ms ease",
+        }}
+        onMouseEnter={cancelClose}
+        onMouseLeave={scheduleClose}
+      >
+        <div className="bg-white rounded-xl border border-black/[0.08] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.25)] overflow-hidden">
+          <div className="px-4 pt-4 pb-3 border-b border-black/[0.06]">
+            <p className="text-sm font-bold text-[#111]">{title}</p>
+            <p className="text-xs text-[#666] mt-0.5">{subtitle}</p>
+          </div>
+          <ul className="py-1.5">
+            {items.map((it) => (
+              <li key={it.label}>
+                <Link
+                  href={buildHref(it.target)}
+                  className="w-full px-3 py-2 flex items-center gap-3 hover:bg-[#f2f2f0] transition-colors group"
+                >
+                  <span
+                    className="h-8 w-8 shrink-0 rounded-lg flex items-center justify-center"
+                    style={{ background: "#29a366", color: "white" }}
+                  >
+                    {it.icon}
+                  </span>
+                  <span className="flex-1 text-sm font-semibold text-[#111]">{it.label}</span>
+                  <ArrowRight className="h-4 w-4 text-[#999] group-hover:text-[#29a366] group-hover:translate-x-0.5 transition-all" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <button
+            onClick={onClick}
+            className="w-full h-11 flex items-center justify-center gap-1.5 text-sm font-bold text-white transition-opacity hover:opacity-90"
+            style={{ background: "#29a366" }}
+          >
+            {label}
+            <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function SellLandingPage() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -372,19 +487,36 @@ export default function SellLandingPage() {
           <div className="ml-auto flex items-center gap-3">
             {!user ? (
               <>
-                <button
+                <AuthHoverDropdown
                   onClick={() => goToAuth("signin")}
-                  className="hidden sm:flex h-10 px-5 items-center rounded-lg border border-black/[0.10] text-base font-semibold text-[#555] hover:bg-[#f2f2f0] transition-colors"
-                >
-                  Log in
-                </button>
-                <button
+                  label="Log in"
+                  variant="ghost"
+                  authMode="signin"
+                  title="Your Emoorm shopper account"
+                  subtitle="Sign in to access your account."
+                  items={[
+                    { icon: <ShoppingBag className="h-4 w-4" />, label: "Browse stores", target: "/stores" },
+                    { icon: <Heart className="h-4 w-4" />, label: "Wishlist", target: "/wishlist" },
+                    { icon: <Package className="h-4 w-4" />, label: "My orders", target: "/orders" },
+                    { icon: <MessageCircle className="h-4 w-4" />, label: "Messages", target: "/messages" },
+                    { icon: <Bell className="h-4 w-4" />, label: "Notifications", target: "/notifications" },
+                  ]}
+                />
+                <AuthHoverDropdown
                   onClick={() => goToAuth("signup")}
-                  className="h-10 px-5 rounded-lg text-base font-semibold text-white transition-opacity hover:opacity-90"
-                  style={{ background: "#29a366" }}
-                >
-                  Start selling
-                </button>
+                  label="Start selling"
+                  variant="primary"
+                  authMode="signup"
+                  title="Your Emoorm seller account"
+                  subtitle="Create an account to open your shop."
+                  items={[
+                    { icon: <Store className="h-4 w-4" />, label: "Set up storefront", target: "/seller/register" },
+                    { icon: <Package className="h-4 w-4" />, label: "Manage products", target: "/seller/dashboard" },
+                    { icon: <BarChart3 className="h-4 w-4" />, label: "Sales & analytics", target: "/seller/dashboard" },
+                    { icon: <Wallet className="h-4 w-4" />, label: "Payment settings", target: "/seller/dashboard" },
+                    { icon: <MessageCircle className="h-4 w-4" />, label: "Buyer chats", target: "/messages" },
+                  ]}
+                />
               </>
             ) : (
               <button
