@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -43,7 +43,7 @@ function PasswordStrength({ password }: { password: string }) {
 const inp = "w-full border border-gray-300 rounded-none px-3.5 py-3 text-sm text-[#111] placeholder:text-gray-400 outline-none focus:border-[#29a366] focus:ring-1 focus:ring-[#29a366]/30 transition-all disabled:opacity-50";
 const lbl = "block text-xs font-semibold text-gray-500 mb-1";
 
-export default function SignUpPage() {
+function SignUpPageContent() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     firstName: "", lastName: "", email: "", mobile: "",
@@ -539,5 +539,13 @@ export default function SignUpPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <SignUpPageContent />
+    </Suspense>
   );
 }
