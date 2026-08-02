@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AdminLayout } from "@/components/layout/admin-layout";
 import { useIsAdmin } from "@/hooks/use-is-admin";
+import { useAdminStoreScope } from "@/hooks/use-admin-store-scope";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -56,6 +57,7 @@ export default function AdminProductsPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { isAdmin, isAdminLoading } = useIsAdmin();
+  const { inScopeIds } = useAdminStoreScope();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [deleteTarget, setDeleteTarget] = useState<{
@@ -90,6 +92,7 @@ export default function AdminProductsPage() {
   (allStores ?? []).forEach((s: any) => storeMap.set(s.id, s));
 
   const filteredProducts = (allProducts ?? []).filter((p: any) => {
+    if (inScopeIds && !inScopeIds.has(String(p.storeId)) && !inScopeIds.has(String(p.sellerId))) return false;
     const matchesSearch =
       !searchQuery ||
       (p.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||

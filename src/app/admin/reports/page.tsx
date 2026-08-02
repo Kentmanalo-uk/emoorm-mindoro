@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AdminLayout } from "@/components/layout/admin-layout";
 import { useIsAdmin } from "@/hooks/use-is-admin";
+import { useAdminStoreScope } from "@/hooks/use-admin-store-scope";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -69,6 +70,7 @@ export default function AdminReportsPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { isAdmin, isAdminLoading } = useIsAdmin();
+  const { inScopeIds } = useAdminStoreScope();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("open");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
@@ -93,6 +95,7 @@ export default function AdminReportsPage() {
   if (isAdminLoading || !isAdmin) return null;
 
   const filtered = (reports ?? []).filter((r: any) => {
+    if (inScopeIds && !inScopeIds.has(String(r.storeId)) && !inScopeIds.has(String(r.targetId))) return false;
     const matchesSearch =
       !searchQuery ||
       (r.targetLabel || "").toLowerCase().includes(searchQuery.toLowerCase()) ||

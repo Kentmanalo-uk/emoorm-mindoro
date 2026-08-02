@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AdminLayout } from "@/components/layout/admin-layout";
 import { useIsAdmin } from "@/hooks/use-is-admin";
+import { useAdminStoreScope } from "@/hooks/use-admin-store-scope";
 import {
   DollarSign,
   Package,
@@ -66,6 +67,7 @@ function isTrendPositive(trend: string) {
 export default function AdminDashboardPage() {
   const router = useRouter();
   const { isAdmin, isAdminLoading, user } = useIsAdmin();
+  const { inScopeIds } = useAdminStoreScope();
 
   useEffect(() => {
     if (!isAdminLoading && !isAdmin) {
@@ -136,20 +138,51 @@ export default function AdminDashboardPage() {
     usersLoading || ordersLoading || productsLoading || storesLoading;
 
   const totalRevenue =
-    allOrders?.reduce((sum, o: any) => sum + (Number(o.totalPrice) || 0), 0) ??
-    0;
-  const totalProducts = allProducts?.length ?? 0;
-  const totalUsers = allUsers?.length ?? 0;
-  const totalSellers = allStores?.length ?? 0;
-  const verifiedSellers = allStores?.filter((s: any) => s.verified).length ?? 0;
+    (inScopeIds
+      ? (allOrders ?? []).filter(
+          (o: any) =>
+            inScopeIds.has(String(o.storeId)) ||
+            inScopeIds.has(String(o.sellerId)),
+        )
+      : allOrders ?? []
+    ).reduce((sum, o: any) => sum + (Number(o.totalPrice) || 0), 0);
+  const scopedStores = inScopeIds
+    ? (allStores ?? []).filter((s: any) => inScopeIds.has(String(s.id)))
+    : (allStores ?? []);
+  const scopedProducts = inScopeIds
+    ? (allProducts ?? []).filter(
+        (p: any) =>
+          inScopeIds.has(String(p.storeId)) ||
+          inScopeIds.has(String(p.sellerId)),
+      )
+    : (allProducts ?? []);
+  const scopedOrders = inScopeIds
+    ? (allOrders ?? []).filter(
+        (o: any) =>
+          inScopeIds.has(String(o.storeId)) ||
+          inScopeIds.has(String(o.sellerId)),
+      )
+    : (allOrders ?? []);
+
+  const totalProducts = scopedProducts.length;
+  const totalUsers = inScopeIds ? scopedStores.length : allUsers?.length ?? 0;
+  const totalSellers = scopedStores.length;
+  const verifiedSellers = scopedStores.filter((s: any) => s.verified).length;
   const pendingSellerVerifications = totalSellers - verifiedSellers;
 
-  const revenueTrend = allOrders
-    ? computeTrend(allOrders as any[], "totalPrice")
+  const revenueTrend = scopedOrders.length
+    ? computeTrend(scopedOrders as any[], "totalPrice")
     : "0%";
-  const usersTrend = allUsers ? computeTrend(allUsers as any[]) : "0%";
-  const sellersTrend = allStores ? computeTrend(allStores as any[]) : "0%";
-  const productsTrend = allProducts ? computeTrend(allProducts as any[]) : "0%";
+  const usersTrend =
+    inScopeIds || !allUsers
+      ? "0%"
+      : computeTrend(allUsers as any[]);
+  const sellersTrend = scopedStores.length
+    ? computeTrend(scopedStores as any[])
+    : "0%";
+  const productsTrend = scopedProducts.length
+    ? computeTrend(scopedProducts as any[])
+    : "0%";
 
   const stats = [
     {
@@ -161,7 +194,7 @@ export default function AdminDashboardPage() {
       positive: isTrendPositive(revenueTrend),
     },
     {
-      label: "Total Users",
+      label: inScopeIds ? "Stores In Scope" : "Total Users",
       value: String(totalUsers),
       icon: Users,
       color: "text-purple-600 bg-purple-50 dark:bg-purple-500/10",

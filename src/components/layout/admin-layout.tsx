@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo, createContext, useContext } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -29,20 +29,29 @@ import {
 } from "lucide-react";
 import { useSupabaseAuth, useStableMemo, useDoc } from "@/supabase";
 import Image from "next/image";
+import { useIsAdmin } from "@/hooks/use-is-admin";
+import { AdminScopeGuard } from "@/components/admin-scope-guard";
 
-type NavChild = { href: string; label: string; icon: React.ElementType };
+type NavChild = {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+  superOnly?: boolean;
+};
 type NavItem =
   | {
       label: string;
       icon: React.ElementType;
       href: string;
       children?: undefined;
+      superOnly?: boolean;
     }
   | {
       label: string;
       icon: React.ElementType;
       href?: undefined;
       children: NavChild[];
+      superOnly?: boolean;
     };
 
 const NAV_ITEMS: NavItem[] = [
@@ -52,12 +61,13 @@ const NAV_ITEMS: NavItem[] = [
     label: "People",
     icon: Users,
     children: [
-      { href: "/admin/users", label: "Users", icon: Users },
+      { href: "/admin/users", label: "Users", icon: Users, superOnly: true },
       { href: "/admin/sellers", label: "Sellers", icon: Store },
       {
         href: "/admin/municipal-admins",
         label: "Municipal Admins",
         icon: ShieldCheck,
+        superOnly: true,
       },
     ],
   },
@@ -75,13 +85,18 @@ const NAV_ITEMS: NavItem[] = [
     icon: Shield,
     children: [
       { href: "/admin/reports", label: "Reports", icon: FileText },
-      { href: "/admin/audit-log", label: "Audit Log", icon: Activity },
+      {
+        href: "/admin/audit-log",
+        label: "Audit Log",
+        icon: Activity,
+        superOnly: true,
+      },
     ],
   },
-  { label: "Analytics", icon: BarChart3, href: "/admin/analytics" },
-  { label: "Vouchers", icon: Tag, href: "/admin/vouchers" },
-  { label: "Municipal", icon: MapPin, href: "/admin/municipal" },
-  { label: "Settings", icon: Settings, href: "/admin/settings" },
+  { label: "Analytics", icon: BarChart3, href: "/admin/analytics", superOnly: true },
+  { label: "Vouchers", icon: Tag, href: "/admin/vouchers", superOnly: true },
+  { label: "Municipal", icon: MapPin, href: "/admin/municipal", superOnly: true },
+  { label: "Settings", icon: Settings, href: "/admin/settings", superOnly: true },
 ];
 
 function isActive(pathname: string, href: string) {
@@ -119,18 +134,35 @@ function AdminSidebarContent({
   userProfile,
   user,
   onClose,
+  isSuperAdmin,
+  municipality,
 }: {
   pathname: string;
   userProfile: any;
   user: any;
   onClose?: () => void;
+  isSuperAdmin: boolean;
+  municipality: string | null;
 }) {
   const router = useRouter();
 
+  const visibleItems = useMemo(() => {
+    return NAV_ITEMS.map((item) => {
+      if (isSuperAdmin) return item;
+      if (item.superOnly) return null;
+      if (!item.children) return item;
+      const kids = item.children.filter((c) => !c.superOnly);
+      if (kids.length === 0) return null;
+      return { ...item, children: kids };
+    }).filter(Boolean) as NavItem[];
+  }, [isSuperAdmin]);
+
   const defaultOpen = new Set(
-    NAV_ITEMS.filter((item) =>
-      item.children?.some((c) => isActive(pathname, c.href)),
-    ).map((item) => item.label),
+    visibleItems
+      .filter((item) =>
+        item.children?.some((c) => isActive(pathname, c.href)),
+      )
+      .map((item) => item.label),
   );
   const [openGroups, setOpenGroups] = useState<Set<string>>(defaultOpen);
 
@@ -167,7 +199,9 @@ function AdminSidebarContent({
           </div>
           <span className="text-base font-bold leading-none">
             <span style={{ color: "#29a366" }}>Emoorm</span>
-            <span className="text-[#111]"> Admin</span>
+            <span className="text-[#111]">
+              {isSuperAdmin ? " Admin" : " Municipal"}
+            </span>
           </span>
         </Link>
         {onClose && (
@@ -181,7 +215,17 @@ function AdminSidebarContent({
       </div>
 
       <nav className="flex-1 overflow-y-auto py-3 px-3">
-        {NAV_ITEMS.map((item) => {
+        {!isSuperAdmin && municipality ? (
+          <div className="mb-3 mx-1 px-3 py-2 rounded-xl bg-[#f0faf5] border border-[#29a366]/20">
+            <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "#29a366" }}>
+              Municipal Scope
+            </p>
+            <p className="text-xs font-semibold text-[#111] truncate mt-0.5">
+              {municipality}
+            </p>
+          </div>
+        ) : null}
+        {visibleItems.map((item) => {
           const Icon = item.icon;
 
           if (!item.children) {
@@ -301,10 +345,21 @@ function AdminSidebarContent({
   );
 }
 
+// Prevents nested AdminLayout wrappers (in page files) from rendering the
+// chrome again once an ancestor layout has already rendered it.
+const AdminLayoutMountedContext = createContext(false);
+
 export function AdminLayout({ children }: { children: React.ReactNode }) {
+  const alreadyMounted = useContext(AdminLayoutMountedContext);
+  if (alreadyMounted) return <>{children}</>;
+  return <AdminLayoutChrome>{children}</AdminLayoutChrome>;
+}
+
+function AdminLayoutChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useSupabaseAuth();
+  const { isSuperAdmin, municipality } = useIsAdmin();
 
   const userProfileRef = useStableMemo(() => {
     if (!user) return null;
@@ -324,6 +379,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           pathname={pathname}
           userProfile={userProfile}
           user={user}
+          isSuperAdmin={isSuperAdmin}
+          municipality={municipality}
         />
       </aside>
 
@@ -339,6 +396,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               userProfile={userProfile}
               user={user}
               onClose={() => setSidebarOpen(false)}
+              isSuperAdmin={isSuperAdmin}
+              municipality={municipality}
             />
           </aside>
         </div>
@@ -378,7 +437,13 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         <main className="flex-1 overflow-y-auto flex flex-col">
-          <div className="flex-1">{children}</div>
+          <div className="flex-1">
+            <AdminScopeGuard>
+              <AdminLayoutMountedContext.Provider value={true}>
+                {children}
+              </AdminLayoutMountedContext.Provider>
+            </AdminScopeGuard>
+          </div>
           <footer className="border-t border-black/[0.06] px-6 py-3 flex flex-col sm:flex-row items-center justify-between gap-2 mt-auto">
             <p className="text-[12px] text-[#aaa]">
               © Emoorm 2026. All rights reserved.

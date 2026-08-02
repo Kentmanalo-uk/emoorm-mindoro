@@ -73,7 +73,8 @@ export default function AdminSellersPage() {
   const supabase = useSupabase();
   const router = useRouter();
   const { toast } = useToast();
-  const { isAdmin, isAdminLoading } = useIsAdmin();
+  const { isAdmin, isAdminLoading, isMunicipalAdmin, municipality } =
+    useIsAdmin();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [verificationFilter, setVerificationFilter] = useState<string>("all");
@@ -121,6 +122,13 @@ export default function AdminSellersPage() {
   if (isAdminLoading || !isAdmin) return null;
 
   const filteredStores = (allStores ?? []).filter((s: any) => {
+    if (isMunicipalAdmin) {
+      const target = (municipality || "").trim().toLowerCase().replace(/\s+city$/i, "").trim();
+      const sMuni = (s.municipality || "").trim().toLowerCase().replace(/\s+city$/i, "").trim();
+      const sCity = (s.city || "").trim().toLowerCase().replace(/\s+city$/i, "").trim();
+      if (!target) return false;
+      if (sMuni !== target && sCity !== target) return false;
+    }
     const matchesSearch =
       !searchQuery ||
       (s.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
