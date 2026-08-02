@@ -40,7 +40,7 @@ function AuthCallbackInner() {
               city: pending.city || "",
               barangay: pending.barangay || "",
               street: pending.street || "",
-              role: "buyer",
+              role: "user",
               createdAt: new Date().toISOString(),
             },
             { onConflict: "id" },

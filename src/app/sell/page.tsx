@@ -242,8 +242,41 @@ export default function SellLandingPage() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeNav, setActiveNav] = useState<string | null>(null);
+  const [headerVisible, setHeaderVisible] = useState(true);
   const { user, isUserLoading } = useUser();
   const supabase = useSupabase();
+
+  // Auto-hide sell header on scroll down, reveal on scroll up (rAF-throttled)
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let ticking = false;
+    let visible = true;
+    const THRESHOLD = 6;
+    const REVEAL_AT = 40;
+    const update = () => {
+      ticking = false;
+      const y = window.scrollY;
+      const dy = y - lastY;
+      if (y <= REVEAL_AT) {
+        if (!visible) { visible = true; setHeaderVisible(true); }
+      } else if (dy > THRESHOLD && visible) {
+        visible = false;
+        setHeaderVisible(false);
+      } else if (dy < -THRESHOLD && !visible) {
+        visible = true;
+        setHeaderVisible(true);
+      }
+      lastY = y;
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(update);
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const storeRef = useStableMemo(
     () => (user ? { table: "stores", id: user.uid } : null),
@@ -291,20 +324,29 @@ export default function SellLandingPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      {/* -- Top announcement bar ------------------------------- */}
+      {/* Sticky wrapper — translates up by 40px so header lands at top:0 while topbar slides out */}
       <div
-        className="h-10 flex items-center justify-center px-4 gap-2 text-xs font-medium text-white"
-        style={{ background: "#29a366" }}
+        className="sticky top-0 z-50"
+        style={{
+          transform: headerVisible ? "translateY(0)" : "translateY(-40px)",
+          transition: "transform 260ms cubic-bezier(0.22, 1, 0.36, 1)",
+          willChange: "transform",
+        }}
       >
-        <Star className="h-3.5 w-3.5 fill-white text-white shrink-0" />
-        <span>Free to join. Built for Oriental Mindoro sellers.</span>
-      </div>
+        {/* -- Top announcement bar (slides out on scroll down) ---- */}
+        <div
+          className="h-10 flex items-center justify-center px-4 gap-2 text-xs font-medium text-white"
+          style={{ background: "#29a366" }}
+        >
+          <Star className="h-3.5 w-3.5 fill-white text-white shrink-0" />
+          <span>Free to join. Built for Oriental Mindoro sellers.</span>
+        </div>
 
-      {/* -- Nav bar ----------------------------------------------- */}
-      <header
-        className="sticky top-0 z-50 bg-white border-b border-black/[0.06]"
-        onMouseLeave={() => setActiveNav(null)}
-      >
+        {/* -- Nav bar (always floating) ---------------------------- */}
+        <header
+          className="bg-white border-b border-black/[0.06]"
+          onMouseLeave={() => setActiveNav(null)}
+        >
         <div className="h-16 flex items-center px-4 md:px-8 gap-8 max-w-[1280px] mx-auto w-full">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-1.5 shrink-0">
@@ -371,6 +413,7 @@ export default function SellLandingPage() {
           </div>
         </div>
       </header>
+      </div>
 
       {/* Mobile nav menu */}
       {mobileMenuOpen && (

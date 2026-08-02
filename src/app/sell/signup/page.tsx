@@ -144,7 +144,7 @@ export default function SellerSignupPage() {
             firstName: form.firstName,
             lastName: form.lastName,
             email: form.email,
-            role: "buyer",
+            role: "user",
             createdAt: new Date().toISOString(),
           },
           { onConflict: "id" },

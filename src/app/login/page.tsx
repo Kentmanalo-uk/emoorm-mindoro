@@ -107,15 +107,6 @@ export default function LoginPage() {
               "radial-gradient(circle at 20% 25%, rgba(125,255,184,0.18), transparent 55%), radial-gradient(circle at 80% 75%, rgba(255,255,255,0.08), transparent 60%)",
           }}
         />
-        {/* Faint grid (spans full width) */}
-        <div
-          className="absolute inset-0 pointer-events-none opacity-[0.06]"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,0.9) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.9) 1px, transparent 1px)",
-            backgroundSize: "28px 28px",
-          }}
-        />
 
         {/* ── Left: brand hero (hidden on small mobile) ── */}
         <div

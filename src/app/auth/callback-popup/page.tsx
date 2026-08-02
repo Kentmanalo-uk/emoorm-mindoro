@@ -48,7 +48,7 @@ function CallbackPopupInner() {
               city: p.city || "",
               barangay: p.barangay || "",
               street: p.street || "",
-              role: "buyer",
+              role: "user",
               createdAt: new Date().toISOString(),
             }, { onConflict: "id" });
             localStorage.removeItem("pendingProfile");

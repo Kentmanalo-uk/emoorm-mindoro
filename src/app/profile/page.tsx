@@ -170,6 +170,53 @@ export default function ProfilePage() {
   }, [user]);
   const { data: userProfile } = useDoc(userProfileRef);
 
+  // Self-heal: if the auth user has no matching users row (e.g. a prior signup
+  // upsert silently failed due to the legacy 'buyer' role), create one now
+  // from Supabase auth metadata + any leftover localStorage pendingProfile.
+  const [healed, setHealed] = React.useState(false);
+  React.useEffect(() => {
+    if (!user || userProfile || healed) return;
+    setHealed(true);
+    (async () => {
+      let pending: any = null;
+      try {
+        const raw = localStorage.getItem("pendingProfile");
+        if (raw) pending = JSON.parse(raw);
+      } catch {}
+      const meta: any = (user as any)?.metadata || {};
+      const firstName = pending?.firstName || meta.firstName || "";
+      const lastName = pending?.lastName || meta.lastName || "";
+      const fullName =
+        `${firstName} ${lastName}`.trim() ||
+        (user as any).displayName ||
+        (user.email ? user.email.split("@")[0] : "");
+      const { error } = await supabase.from("users").upsert(
+        {
+          id: user.uid,
+          email: user.email || pending?.email || "",
+          name: fullName,
+          firstName,
+          lastName,
+          mobile: pending?.mobile || "",
+          province: pending?.province || "",
+          city: pending?.city || "",
+          barangay: pending?.barangay || "",
+          street: pending?.street || "",
+          role: "user",
+          createdAt: new Date().toISOString(),
+        },
+        { onConflict: "id" },
+      );
+      if (!error) {
+        try {
+          localStorage.removeItem("pendingProfile");
+        } catch {}
+      } else {
+        console.error("[profile] self-heal failed:", error);
+      }
+    })();
+  }, [user, userProfile, healed, supabase]);
+
   const storeRef = useStableMemo(() => {
     if (!user) return null;
     return { table: "stores", id: user.uid };
