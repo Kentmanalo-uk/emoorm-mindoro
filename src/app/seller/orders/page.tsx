@@ -25,7 +25,6 @@ import {
   useSupabase,
   useStableMemo,
   useCollection,
-  updateDocumentNonBlocking,
 } from "@/supabase";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
@@ -203,10 +202,16 @@ export default function SellerOrdersPage() {
   const [updating, setUpdating] = useState<string | null>(null);
   const handleUpdateStatus = async (orderId: string, newStatus: string) => {
     setUpdating(orderId);
-    await updateDocumentNonBlocking(supabase, "bookings", orderId, {
-      status: newStatus,
-    });
-    setTimeout(() => window.location.reload(), 500);
+    try {
+      await supabase
+        .from("bookings")
+        .update({ status: newStatus })
+        .eq("id", orderId);
+    } catch (err) {
+      console.error("Failed to update status:", err);
+    } finally {
+      setUpdating(null);
+    }
   };
 
   const statusTabs = [
@@ -410,10 +415,10 @@ export default function SellerOrdersPage() {
                       }
                     >
                       <div className="h-12 w-12 rounded-xl overflow-hidden bg-[#f2f2f0] shrink-0 border border-black/[0.06]">
-                        {product?.imageUrl ? (
+                        {(order.productImageUrl || product?.imageUrl) ? (
                           <img
-                            src={product.imageUrl}
-                            alt={product.name || "Product"}
+                            src={order.productImageUrl || product?.imageUrl}
+                            alt={order.productName || product?.name || "Product"}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -424,7 +429,7 @@ export default function SellerOrdersPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-[#111] truncate">
-                          {product?.name || `Order #${order.id?.slice(0, 8)}`}
+                          {order.productName || product?.name || `Order #${order.id?.slice(0, 8)}`}
                         </p>
                         <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                           <span className="text-xs text-[#888]">
@@ -450,15 +455,22 @@ export default function SellerOrdersPage() {
                             )}
                           </span>
                         </div>
-                        <span className="text-[11px] text-[#aaa] inline-flex items-center gap-0.5 mt-0.5">
+                        <span className="text-[11px] text-[#aaa] inline-flex items-center gap-1 mt-0.5">
                           <User className="h-3 w-3" />
-                          {buyer
-                            ? [buyer.firstName, buyer.lastName]
-                                .filter(Boolean)
-                                .join(" ") ||
-                              buyer.email ||
-                              "Buyer"
-                            : "Buyer"}
+                          {order.buyerName ||
+                            (buyer
+                              ? [buyer.firstName, buyer.lastName]
+                                  .filter(Boolean)
+                                  .join(" ") ||
+                                buyer.email ||
+                                "Buyer"
+                              : "Buyer")}
+                          {(order.buyerMobile || buyer?.mobile) && (
+                            <>
+                              <span className="text-[#ddd]">·</span>
+                              <span>+63 {order.buyerMobile || buyer?.mobile}</span>
+                            </>
+                          )}
                         </span>
                       </div>
                       <div className="flex flex-col items-end gap-1 shrink-0">
@@ -482,131 +494,212 @@ export default function SellerOrdersPage() {
 
                     {isExpanded && (
                       <div className="px-4 pb-4 border-t border-black/[0.04]">
-                        <div className="pt-3 space-y-2.5">
-                          {[
-                            [
-                              "Order ID",
-                              <span className="font-mono text-xs">
-                                {order.id?.slice(0, 12)}
-                              </span>,
-                            ],
-                            [
-                              "Buyer",
-                              buyer
+                        <div className="pt-3 space-y-3">
+
+                          {/* Order meta */}
+                          <div className="flex items-center justify-between text-[11px] text-[#888]">
+                            <span className="font-mono">
+                              #{order.id?.slice(0, 12)}
+                            </span>
+                            <span>
+                              {order.createdAt
+                                ? new Date(order.createdAt).toLocaleString("en-PH", {
+                                    dateStyle: "medium",
+                                    timeStyle: "short",
+                                  })
+                                : ""}
+                            </span>
+                          </div>
+
+                          {/* Buyer info card */}
+                          {(() => {
+                            const buyerName =
+                              order.buyerName ||
+                              (buyer
                                 ? [buyer.firstName, buyer.lastName]
                                     .filter(Boolean)
-                                    .join(" ") || "—"
-                                : "—",
-                            ],
-                            buyer?.mobile && [
-                              "Phone",
-                              buyer.mobile || buyer.phone,
-                            ],
-                            buyer?.email && [
-                              "Email",
-                              <span className="truncate max-w-[180px] inline-block">
-                                {buyer.email}
-                              </span>,
-                            ],
-                            [
-                              "Status",
-                              <span
-                                className="text-[10px] font-semibold px-2 py-0.5 rounded"
-                                style={{ color: cfg.color, background: cfg.bg }}
-                              >
-                                {cfg.label}
-                              </span>,
-                            ],
-                            [
-                              "Fulfillment",
-                              order.fulfillmentMethod === "pickup"
-                                ? "Pickup at shop"
-                                : order.shippingAddress || "N/A",
-                            ],
-                            [
-                              "Payment",
-                              <span className="capitalize">
-                                {order.paymentMethod || "cod"}
-                              </span>,
-                            ],
-                          ]
-                            .filter(Boolean)
-                            .map((row: any, i) => (
-                              <div
-                                key={i}
-                                className="flex items-center justify-between gap-4"
-                              >
-                                <span className="text-xs text-[#888] shrink-0">
-                                  {row[0]}
-                                </span>
-                                <span className="text-xs text-[#333] text-right">
-                                  {row[1]}
-                                </span>
+                                    .join(" ")
+                                : "");
+                            const buyerMobile = order.buyerMobile || buyer?.mobile || "";
+                            const buyerEmail = buyer?.email || "";
+                            return (
+                              <div className="p-3 bg-[#f9faf8] rounded-xl border border-black/[0.06]">
+                                <div className="flex items-center gap-1.5 mb-2">
+                                  <User className="h-3.5 w-3.5 text-[#29a366]" />
+                                  <span className="text-[11px] font-semibold text-[#111] uppercase tracking-wide">
+                                    Buyer
+                                  </span>
+                                </div>
+                                <p className="text-sm font-semibold text-[#111]">
+                                  {buyerName || "—"}
+                                </p>
+                                <div className="mt-1 space-y-0.5 text-xs text-[#555]">
+                                  {buyerMobile && (
+                                    <p>
+                                      <span className="text-[#888]">Phone:</span>{" "}
+                                      <a
+                                        href={`tel:+63${buyerMobile}`}
+                                        className="font-medium text-[#111] hover:text-[#29a366]"
+                                      >
+                                        +63 {buyerMobile}
+                                      </a>
+                                    </p>
+                                  )}
+                                  {buyerEmail && (
+                                    <p className="truncate">
+                                      <span className="text-[#888]">Email:</span>{" "}
+                                      <a
+                                        href={`mailto:${buyerEmail}`}
+                                        className="text-[#111] hover:text-[#29a366]"
+                                      >
+                                        {buyerEmail}
+                                      </a>
+                                    </p>
+                                  )}
+                                </div>
                               </div>
-                            ))}
+                            );
+                          })()}
 
-                          {order.fulfillmentMethod !== "pickup" &&
-                            order.shippingAddress && (
-                              <div className="flex gap-2 p-2.5 bg-[#f2f2f0] rounded-xl border border-black/[0.06]">
-                                <MapPin className="h-3.5 w-3.5 text-[#888] shrink-0 mt-0.5" />
-                                <span className="text-xs text-[#333] leading-relaxed">
-                                  {order.shippingAddress}
-                                </span>
+                          {/* Shipping / pickup card */}
+                          <div className="p-3 bg-[#f9faf8] rounded-xl border border-black/[0.06]">
+                            <div className="flex items-center gap-1.5 mb-2">
+                              {order.fulfillmentMethod === "pickup" ? (
+                                <Package className="h-3.5 w-3.5 text-[#ea580c]" />
+                              ) : (
+                                <MapPin className="h-3.5 w-3.5 text-[#2563eb]" />
+                              )}
+                              <span className="text-[11px] font-semibold text-[#111] uppercase tracking-wide">
+                                {order.fulfillmentMethod === "pickup"
+                                  ? "Pickup at shop"
+                                  : "Delivery address"}
+                              </span>
+                            </div>
+                            {order.fulfillmentMethod === "pickup" ? (
+                              <p className="text-xs text-[#555]">
+                                Buyer will pick up this order at your shop.
+                              </p>
+                            ) : (
+                              <div className="text-xs text-[#333] leading-relaxed space-y-0.5">
+                                {order.shippingStreet && <p>{order.shippingStreet}</p>}
+                                <p>
+                                  {[order.shippingBarangay, order.shippingCity, order.shippingProvince]
+                                    .filter(Boolean)
+                                    .join(", ") ||
+                                    order.shippingAddress ||
+                                    "No address on file"}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Product / pricing card */}
+                          <div className="p-3 bg-[#f9faf8] rounded-xl border border-black/[0.06]">
+                            <div className="flex items-center gap-1.5 mb-2">
+                              <ShoppingCart className="h-3.5 w-3.5 text-[#29a366]" />
+                              <span className="text-[11px] font-semibold text-[#111] uppercase tracking-wide">
+                                Item
+                              </span>
+                            </div>
+                            <p className="text-sm text-[#111] font-medium">
+                              {order.productName || product?.name || "—"}
+                            </p>
+                            <div className="mt-1.5 flex items-center justify-between text-xs text-[#555]">
+                              <span>
+                                {order.quantity || 1} ×{" "}
+                                ₱
+                                {Number(
+                                  order.unitPrice ||
+                                    (order.totalPrice && order.quantity
+                                      ? order.totalPrice / order.quantity
+                                      : 0),
+                                ).toLocaleString()}
+                              </span>
+                              <span className="font-bold text-[#111]">
+                                Total: ₱
+                                {Number(order.totalPrice || 0).toLocaleString()}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Payment card */}
+                          <div className="p-3 bg-[#f9faf8] rounded-xl border border-black/[0.06]">
+                            <div className="flex items-center gap-1.5 mb-2">
+                              <CreditCard className="h-3.5 w-3.5 text-[#7c3aed]" />
+                              <span className="text-[11px] font-semibold text-[#111] uppercase tracking-wide">
+                                Payment
+                              </span>
+                            </div>
+                            <p className="text-xs text-[#333]">
+                              <span className="text-[#888]">Method:</span>{" "}
+                              <span className="font-semibold uppercase">
+                                {order.paymentMethod || "cod"}
+                              </span>
+                            </p>
+
+                            {order.paymentMethod === "gcash" && (
+                              <div className="mt-2 space-y-1.5">
+                                <p className="text-xs text-[#555]">
+                                  <span className="text-[#888]">GCash Ref:</span>{" "}
+                                  <span className="font-mono font-semibold text-[#111]">
+                                    {order.gcashRef || "N/A"}
+                                  </span>
+                                </p>
+                                {order.gcashProofUrl ? (
+                                  <a
+                                    href={order.gcashProofUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="block"
+                                  >
+                                    <img
+                                      src={order.gcashProofUrl}
+                                      alt="GCash proof"
+                                      className="w-28 h-28 object-contain rounded-lg border border-black/[0.08] bg-white"
+                                    />
+                                  </a>
+                                ) : (
+                                  <p className="text-xs text-[#888] italic">
+                                    No proof uploaded yet.
+                                  </p>
+                                )}
                               </div>
                             )}
 
-                          {order.paymentMethod === "gcash" && (
-                            <div className="p-3 bg-blue-50 rounded-xl border border-blue-100 space-y-1.5">
-                              <span className="text-xs font-semibold text-blue-700 flex items-center gap-1">
-                                <CreditCard className="h-3.5 w-3.5" /> GCash
-                                Payment
-                              </span>
-                              {order.gcashProofUrl ? (
-                                <img
-                                  src={order.gcashProofUrl}
-                                  alt="GCash Proof"
-                                  className="w-28 h-28 object-contain rounded border border-blue-200 bg-white"
-                                />
-                              ) : (
-                                <span className="text-xs text-[#888]">
-                                  No proof yet
-                                </span>
-                              )}
-                              <span className="text-xs text-[#555]">
-                                Ref:{" "}
-                                <span className="font-mono font-bold">
-                                  {order.gcashRef || "N/A"}
-                                </span>
-                              </span>
-                            </div>
-                          )}
-                          {order.paymentMethod === "qrph" && (
-                            <div className="p-3 bg-[#f2f2f0] rounded-xl border border-black/[0.06] space-y-1.5">
-                              <span className="text-xs font-semibold text-[#333]">
-                                QR PH Payment
-                              </span>
-                              {order.qrphProofUrl ? (
-                                <img
-                                  src={order.qrphProofUrl}
-                                  alt="QR PH Proof"
-                                  className="w-28 h-28 object-contain border rounded"
-                                />
-                              ) : (
-                                <span className="text-xs text-[#888]">
-                                  No proof yet
-                                </span>
-                              )}
-                              <span className="text-xs text-[#555]">
-                                Ref:{" "}
-                                <span className="font-mono">
-                                  {order.qrphRef || "N/A"}
-                                </span>
-                              </span>
-                            </div>
-                          )}
+                            {order.paymentMethod === "qrph" && (
+                              <div className="mt-2 space-y-1.5">
+                                <p className="text-xs text-[#555]">
+                                  <span className="text-[#888]">QR PH Ref:</span>{" "}
+                                  <span className="font-mono font-semibold text-[#111]">
+                                    {order.qrphRef || "N/A"}
+                                  </span>
+                                </p>
+                                {order.qrphProofUrl && (
+                                  <a
+                                    href={order.qrphProofUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="block"
+                                  >
+                                    <img
+                                      src={order.qrphProofUrl}
+                                      alt="QR PH proof"
+                                      className="w-28 h-28 object-contain rounded-lg border border-black/[0.08] bg-white"
+                                    />
+                                  </a>
+                                )}
+                              </div>
+                            )}
+
+                            {order.paymentMethod === "cod" && (
+                              <p className="text-xs text-[#888] mt-1">
+                                Collect payment on delivery.
+                              </p>
+                            )}
+                          </div>
 
                           <button
-                            className="w-full h-8 rounded-xl border border-black/[0.08] text-xs font-semibold text-[#555] hover:bg-[#f2f2f0] transition-colors flex items-center justify-center gap-1.5 mt-1"
+                            className="w-full h-8 rounded-xl border border-black/[0.08] text-xs font-semibold text-[#555] hover:bg-[#f2f2f0] transition-colors flex items-center justify-center gap-1.5"
                             onClick={() => router.push(`/orders/${order.id}`)}
                           >
                             <ExternalLink className="h-3 w-3" /> View Full Order

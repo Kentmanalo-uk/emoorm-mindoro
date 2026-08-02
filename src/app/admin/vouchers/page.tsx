@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -238,10 +238,10 @@ export default function AdminVouchersPage() {
 
   return (
     <AdminLayout>
-      <div className="max-w-7xl mx-auto p-6 md:p-8 w-full pt-6 md:pt-32 pb-24 space-y-8 md:space-y-10">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6 pt-6 pb-8 space-y-4">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-normal font-headline tracking-[-0.05em] text-black dark:text-white">
+            <h1 className="text-lg font-semibold text-[#111]">
               Vouchers & Promo Codes
             </h1>
             <p className="text-sm text-muted-foreground font-normal">
@@ -301,7 +301,7 @@ export default function AdminVouchersPage() {
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03]">
+          <Card className="border border-black/[0.06] rounded-xl bg-white">
             <CardContent className="py-20 text-center">
               <Tag className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-sm text-muted-foreground mb-4">
@@ -324,7 +324,7 @@ export default function AdminVouchersPage() {
                 <Card
                   key={v.id}
                   className={cn(
-                    "shadow-[0_20px_50px_rgba(0,0,0,0.04)] border rounded-[32px] bg-white dark:bg-white/[0.03] overflow-hidden",
+                    "border rounded-xl bg-white overflow-hidden",
                     !v.active && "opacity-60",
                   )}
                 >
@@ -345,7 +345,7 @@ export default function AdminVouchersPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className="w-48 rounded-2xl p-1 bg-white/80 backdrop-blur-xl border-none"
+                          className="w-48 rounded-xl p-1 bg-white border border-black/[0.06] shadow-md"
                         >
                           <DropdownMenuItem
                             className="rounded-xl gap-3 px-3 py-2.5 cursor-pointer"
@@ -390,7 +390,7 @@ export default function AdminVouchersPage() {
                         {v.discountType === "percentage"
                           ? `${v.discountValue}% off`
                           : v.discountType === "fixed"
-                            ? `₱${v.discountValue} off`
+                            ? `?${v.discountValue} off`
                             : "Free shipping"}
                       </Badge>
                       {v.minOrderAmount > 0 && (
@@ -398,7 +398,7 @@ export default function AdminVouchersPage() {
                           variant="outline"
                           className="rounded-full text-[10px]"
                         >
-                          min ₱{v.minOrderAmount}
+                          min ?{v.minOrderAmount}
                         </Badge>
                       )}
                       {expired && (
@@ -436,7 +436,7 @@ export default function AdminVouchersPage() {
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="sm:max-w-[500px] rounded-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="font-headline tracking-[-0.03em]">
+              <DialogTitle className="font-semibold text-[#111]">
                 {editing ? "Edit Voucher" : "New Voucher"}
               </DialogTitle>
               <DialogDescription>
@@ -487,7 +487,7 @@ export default function AdminVouchersPage() {
                     className="w-full bg-[#f8f8f8] dark:bg-white/[0.05] border-none rounded-full px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   >
                     <option value="percentage">Percentage %</option>
-                    <option value="fixed">Fixed ₱</option>
+                    <option value="fixed">Fixed ?</option>
                     <option value="free_shipping">Free shipping</option>
                   </select>
                 </div>
@@ -513,7 +513,7 @@ export default function AdminVouchersPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <label className="text-xs font-bold tracking-tight text-muted-foreground">
-                    Min order ₱
+                    Min order ?
                   </label>
                   <input
                     type="number"

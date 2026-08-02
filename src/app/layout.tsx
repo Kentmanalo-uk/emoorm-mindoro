@@ -5,7 +5,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeColorMeta } from "@/components/theme-color-meta";
 import { AdminRouteGuard } from "@/components/admin-route-guard";
 import { LanguageProvider } from "@/contexts/language-context";
-import { AuthModal } from "@/components/auth-modal";
 import { FloatingChat } from "@/components/floating-chat";
 
 export const viewport: Viewport = {
@@ -86,7 +85,6 @@ export default function RootLayout({
         <SupabaseProvider>
           <LanguageProvider>
             <AdminRouteGuard>{children}</AdminRouteGuard>
-            <AuthModal />
             <FloatingChat />
             <Toaster />
             <ThemeColorMeta />

@@ -357,18 +357,26 @@ export default function CheckoutPage() {
       const createdIds: string[] = [];
       // Create order for each cart item
       for (const item of cartItems) {
+        const unitPrice = item.product.price || item.product.pricePerNight || 0;
         const orderData = {
           userId: user.uid,
           facilityId: item.product.id,
           storeId: item.product.storeId || null,
           quantity: item.quantity,
-          totalPrice:
-            (item.product.price || item.product.pricePerNight || 0) *
-            item.quantity,
+          unitPrice,
+          totalPrice: unitPrice * item.quantity,
+          productName: item.product.name || "",
+          productImageUrl: item.product.imageUrl || "",
           paymentMethod,
           fulfillmentMethod,
           status: "To Pay",
           shippingAddress: formattedAddress,
+          buyerName: selectedAddress.fullName || "",
+          buyerMobile: selectedAddress.mobile || "",
+          shippingStreet: selectedAddress.street || "",
+          shippingBarangay: selectedAddress.barangay || "",
+          shippingCity: selectedAddress.city || "",
+          shippingProvince: selectedAddress.province || "",
           bookingDate: new Date().toISOString(),
           startDate: new Date().toISOString(),
           endDate: new Date().toISOString(),
@@ -442,18 +450,26 @@ export default function CheckoutPage() {
     try {
       const orderIds: string[] = [];
       for (const item of cartItems) {
+        const unitPrice = item.product.price || item.product.pricePerNight || 0;
         const orderData = {
           userId: user.uid,
           facilityId: item.product.id,
           storeId: item.product.storeId || null,
           quantity: item.quantity,
-          totalPrice:
-            (item.product.price || item.product.pricePerNight || 0) *
-            item.quantity,
+          unitPrice,
+          totalPrice: unitPrice * item.quantity,
+          productName: item.product.name || "",
+          productImageUrl: item.product.imageUrl || "",
           paymentMethod: "gcash",
           status: "To Pay",
           fulfillmentMethod,
           shippingAddress: formattedAddress,
+          buyerName: selectedAddress.fullName || "",
+          buyerMobile: selectedAddress.mobile || "",
+          shippingStreet: selectedAddress.street || "",
+          shippingBarangay: selectedAddress.barangay || "",
+          shippingCity: selectedAddress.city || "",
+          shippingProvince: selectedAddress.province || "",
           bookingDate: new Date().toISOString(),
           startDate: new Date().toISOString(),
           endDate: new Date().toISOString(),

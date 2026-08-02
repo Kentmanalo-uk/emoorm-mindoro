@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -161,10 +161,10 @@ export default function AdminAuditLogPage() {
 
   return (
     <AdminLayout>
-      <div className="max-w-7xl mx-auto p-6 md:p-8 w-full pt-6 md:pt-32 pb-24 space-y-8 md:space-y-10">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6 pt-6 pb-8 space-y-4">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-2xl md:text-3xl font-normal font-headline tracking-[-0.05em] text-black dark:text-white">
+            <h1 className="text-lg font-semibold text-[#111]">
               Audit Log
             </h1>
             <p className="text-sm text-muted-foreground font-normal">
@@ -229,7 +229,7 @@ export default function AdminAuditLogPage() {
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03]">
+          <Card className="border border-black/[0.06] rounded-xl bg-white">
             <CardContent className="py-20 text-center">
               <ShieldCheck className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-sm text-muted-foreground">
@@ -238,7 +238,7 @@ export default function AdminAuditLogPage() {
             </CardContent>
           </Card>
         ) : (
-          <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03] overflow-hidden">
+          <Card className="border border-black/[0.06] rounded-xl bg-white overflow-hidden">
             <CardContent className="p-0">
               <div className="divide-y divide-black/[0.04] dark:divide-white/[0.04]">
                 {filtered.map((e: any) => {

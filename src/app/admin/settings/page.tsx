@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -175,11 +175,11 @@ export default function AdminSettingsPage() {
 
   return (
     <AdminLayout>
-      <div className="max-w-4xl mx-auto p-6 md:p-8 w-full pt-6 md:pt-32 pb-24 space-y-8 md:space-y-10">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6 pt-6 pb-8 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-normal font-headline tracking-[-0.05em] text-black dark:text-white">
+            <h1 className="text-lg font-semibold text-[#111]">
               Admin Settings
             </h1>
             <p className="text-sm text-muted-foreground font-normal">
@@ -197,9 +197,9 @@ export default function AdminSettingsPage() {
         </div>
 
         {/* Admin Profile */}
-        <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03]">
+        <Card className="border border-black/[0.06] rounded-xl bg-white">
           <CardContent className="p-6 md:p-8">
-            <h2 className="text-xl font-normal font-headline tracking-[-0.05em] mb-6 flex items-center gap-2">
+            <h2 className="text-base font-semibold text-[#111] mb-6 flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" />
               Admin Profile
             </h2>
@@ -228,9 +228,9 @@ export default function AdminSettingsPage() {
         </Card>
 
         {/* Platform Settings */}
-        <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03]">
+        <Card className="border border-black/[0.06] rounded-xl bg-white">
           <CardContent className="p-6 md:p-8 space-y-6">
-            <h2 className="text-xl font-normal font-headline tracking-[-0.05em] flex items-center gap-2">
+            <h2 className="text-base font-semibold text-[#111] flex items-center gap-2">
               <Globe className="h-5 w-5 text-primary" />
               Platform Settings
             </h2>
@@ -289,9 +289,9 @@ export default function AdminSettingsPage() {
         </Card>
 
         {/* Notifications */}
-        <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03]">
+        <Card className="border border-black/[0.06] rounded-xl bg-white">
           <CardContent className="p-6 md:p-8 space-y-4">
-            <h2 className="text-xl font-normal font-headline tracking-[-0.05em] flex items-center gap-2">
+            <h2 className="text-base font-semibold text-[#111] flex items-center gap-2">
               <Bell className="h-5 w-5 text-primary" />
               Notifications
             </h2>
@@ -331,9 +331,9 @@ export default function AdminSettingsPage() {
         </Card>
 
         {/* Moderation */}
-        <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03]">
+        <Card className="border border-black/[0.06] rounded-xl bg-white">
           <CardContent className="p-6 md:p-8 space-y-4">
-            <h2 className="text-xl font-normal font-headline tracking-[-0.05em] flex items-center gap-2">
+            <h2 className="text-base font-semibold text-[#111] flex items-center gap-2">
               <Lock className="h-5 w-5 text-primary" />
               Moderation &amp; Approval
             </h2>
@@ -367,9 +367,9 @@ export default function AdminSettingsPage() {
         </Card>
 
         {/* Admin Users */}
-        <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03]">
+        <Card className="border border-black/[0.06] rounded-xl bg-white">
           <CardContent className="p-6 md:p-8">
-            <h2 className="text-xl font-normal font-headline tracking-[-0.05em] flex items-center gap-2 mb-6">
+            <h2 className="text-base font-semibold text-[#111] flex items-center gap-2 mb-6">
               <Users className="h-5 w-5 text-primary" />
               Admin Users
             </h2>
@@ -394,9 +394,9 @@ export default function AdminSettingsPage() {
         </Card>
 
         {/* Danger Zone */}
-        <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-red-100 dark:border-red-500/20 rounded-[32px] bg-white dark:bg-white/[0.03]">
+        <Card className="border border-red-200 rounded-xl bg-white">
           <CardContent className="p-6 md:p-8">
-            <h2 className="text-xl font-normal font-headline tracking-[-0.05em] flex items-center gap-2 text-red-600 mb-6">
+            <h2 className="text-base font-semibold text-[#111] flex items-center gap-2 text-red-600 mb-6">
               <AlertTriangle className="h-5 w-5" />
               Danger Zone
             </h2>

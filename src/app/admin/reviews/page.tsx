@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -136,14 +136,14 @@ export default function AdminReviewsPage() {
 
   return (
     <AdminLayout>
-      <div className="max-w-7xl mx-auto p-6 md:p-8 w-full pt-6 md:pt-32 pb-24 space-y-8 md:space-y-10">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6 pt-6 pb-8 space-y-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-normal font-headline tracking-[-0.05em] text-black dark:text-white">
+          <h1 className="text-lg font-semibold text-[#111]">
             Reviews Moderation
           </h1>
           <p className="text-sm text-muted-foreground font-normal">
             {total} reviews · {productReviews} products · {sellerReviews}{" "}
-            sellers · avg ★ {avgRating}
+            sellers · avg ? {avgRating}
           </p>
         </div>
 
@@ -195,7 +195,7 @@ export default function AdminReviewsPage() {
                 )}
                 onClick={() => setRatingFilter(r)}
               >
-                {r === "all" ? "★" : `${r}★`}
+                {r === "all" ? "?" : `${r}?`}
               </Button>
             ))}
           </div>
@@ -209,7 +209,7 @@ export default function AdminReviewsPage() {
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03]">
+          <Card className="border border-black/[0.06] rounded-xl bg-white">
             <CardContent className="py-20 text-center">
               <Star className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-sm text-muted-foreground">No reviews found</p>
@@ -225,7 +225,7 @@ export default function AdminReviewsPage() {
                 <Card
                   key={review.id}
                   className={cn(
-                    "shadow-[0_20px_50px_rgba(0,0,0,0.04)] border rounded-[32px] bg-white dark:bg-white/[0.03] overflow-hidden",
+                    "border rounded-xl bg-white overflow-hidden",
                     isLowRating ? "border-red-100" : "border-black/[0.02]",
                   )}
                 >
@@ -316,7 +316,7 @@ export default function AdminReviewsPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className="w-48 rounded-2xl p-1 shadow-[0_20px_50px_rgba(0,0,0,0.1)] bg-white/80 backdrop-blur-xl border-none"
+                          className="w-48 rounded-xl p-1 bg-white border border-black/[0.06] shadow-md"
                         >
                           {review.facilityId && (
                             <DropdownMenuItem

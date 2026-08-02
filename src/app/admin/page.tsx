@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -66,7 +66,7 @@ export default function AdminLoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#f9f9f9] dark:bg-[#050505]">
-      <div className="bg-white dark:bg-white/[0.03] rounded-[32px] p-8 md:p-12 w-full max-w-[480px] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02]">
+      <div className="bg-white rounded-xl p-8 md:p-12 w-full max-w-[480px] shadow-md border border-black/[0.06]">
         <form onSubmit={handleLogin} className="flex flex-col gap-6">
           <div className="text-center space-y-3">
             <div className="flex items-center justify-center">
@@ -76,12 +76,12 @@ export default function AdminLoginPage() {
             </div>
             <Link
               href="/"
-              className="inline-block font-headline italic font-normal text-4xl text-black dark:text-white tracking-[-0.05em]"
+              className="inline-block font-bold text-3xl text-[#111]"
             >
               E-Moorm
             </Link>
             <p className="text-muted-foreground text-sm font-normal">
-              Admin Panel — Authorized access only
+              Admin Panel � Authorized access only
             </p>
           </div>
 
@@ -114,7 +114,7 @@ export default function AdminLoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="��������"
               disabled={loading}
               className="w-full bg-[#f8f8f8] dark:bg-white/[0.05] border-none rounded-full px-6 py-4 text-black dark:text-white placeholder:text-muted-foreground/50 outline-none focus:ring-2 focus:ring-primary/20 transition-all disabled:opacity-50"
               required

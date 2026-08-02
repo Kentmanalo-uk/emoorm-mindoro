@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -307,8 +307,8 @@ export default function AdminSellersPage() {
 
       toast({
         title: newVerificationStatus
-          ? "✓ Seller verified"
-          : "✓ Verification revoked",
+          ? "? Seller verified"
+          : "? Verification revoked",
         description: newVerificationStatus
           ? "This seller is now verified. Their products will be visible to customers immediately."
           : "This seller's verification has been revoked. Their products will no longer be visible to customers.",
@@ -395,11 +395,11 @@ export default function AdminSellersPage() {
 
   return (
     <AdminLayout>
-      <div className="max-w-7xl mx-auto p-6 md:p-8 w-full pt-6 md:pt-32 pb-24 space-y-8 md:space-y-10">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6 pt-6 pb-8 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-normal font-headline tracking-[-0.05em] text-black dark:text-white">
+            <h1 className="text-lg font-semibold text-[#111]">
               Seller Management
             </h1>
             <p className="text-sm text-muted-foreground font-normal">
@@ -442,7 +442,7 @@ export default function AdminSellersPage() {
             return (
               <Card
                 key={stat.label}
-                className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03]"
+                className="border border-black/[0.06] rounded-xl bg-white"
               >
                 <CardContent className="p-5 md:p-8">
                   <div className={`p-3 rounded-2xl ${stat.color} w-fit mb-4`}>
@@ -451,7 +451,7 @@ export default function AdminSellersPage() {
                   <p className="text-xs text-muted-foreground font-medium mb-1">
                     {stat.label}
                   </p>
-                  <p className="text-xl md:text-3xl font-normal font-headline tracking-[-0.05em]">
+                  <p className="text-xl font-bold text-[#111]">
                     {stat.value}
                   </p>
                 </CardContent>
@@ -548,7 +548,7 @@ export default function AdminSellersPage() {
             {Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
-                className="rounded-[32px] border border-black/[0.02] bg-white dark:bg-white/[0.03] p-6 flex items-center gap-4"
+                className="rounded-xl border border-black/[0.06] bg-white p-6 flex items-center gap-4"
               >
                 <Skeleton className="h-16 w-16 rounded-2xl" />
                 <div className="flex-1 space-y-2">
@@ -560,7 +560,7 @@ export default function AdminSellersPage() {
             ))}
           </div>
         ) : filteredStores.length === 0 ? (
-          <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03]">
+          <Card className="border border-black/[0.06] rounded-xl bg-white">
             <CardContent className="py-20 text-center">
               <Store className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-sm text-muted-foreground">No sellers found</p>
@@ -579,7 +579,7 @@ export default function AdminSellersPage() {
               return (
                 <Card
                   key={store.id}
-                  className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03] overflow-hidden"
+                  className="border border-black/[0.06] rounded-xl bg-white overflow-hidden"
                 >
                   <CardContent className="p-5 md:p-8">
                     <div className="flex items-start gap-4 md:gap-6">
@@ -595,7 +595,7 @@ export default function AdminSellersPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-lg font-medium font-headline tracking-[-0.02em] truncate">
+                          <h3 className="text-sm font-semibold text-[#111] truncate">
                             {store.name || "Unnamed Store"}
                           </h3>
                           <Badge
@@ -630,12 +630,12 @@ export default function AdminSellersPage() {
                           </Badge>
                         </div>
                         <p className="text-xs text-muted-foreground mb-3 truncate">
-                          {store.category || "General"} ·{" "}
+                          {store.category || "General"} �{" "}
                           {store.description?.slice(0, 60) || "No description"}
                         </p>
                         {store.verified && store.verified_at && (
                           <p className="text-[11px] text-blue-600 dark:text-blue-400 mb-3">
-                            ✓ Verified on{" "}
+                            ? Verified on{" "}
                             {new Date(store.verified_at).toLocaleDateString()}
                           </p>
                         )}
@@ -649,7 +649,7 @@ export default function AdminSellersPage() {
                             {orderCount} orders
                           </span>
                           <span className="flex items-center gap-1 font-medium text-black dark:text-white">
-                            ₱{revenue.toLocaleString()} revenue
+                            ?{revenue.toLocaleString()} revenue
                           </span>
                           {store.city && (
                             <span className="flex items-center gap-1">
@@ -676,7 +676,7 @@ export default function AdminSellersPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className="w-48 rounded-2xl p-1 shadow-[0_20px_50px_rgba(0,0,0,0.1)] bg-white/80 backdrop-blur-xl border-none"
+                          className="w-48 rounded-xl p-1 bg-white border border-black/[0.06] shadow-md"
                         >
                           <DropdownMenuItem
                             asChild
@@ -850,9 +850,9 @@ export default function AdminSellersPage() {
         >
           <DialogContent className="rounded-3xl max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-xl font-headline font-normal tracking-[-0.03em]">
+              <DialogTitle className="flex items-center gap-2 text-xl font-semibold text-[#111]">
                 <FileText className="h-5 w-5 text-indigo-600" />
-                Seller Registration — {viewRegTarget?.name}
+                Seller Registration � {viewRegTarget?.name}
               </DialogTitle>
             </DialogHeader>
 
@@ -866,34 +866,34 @@ export default function AdminSellersPage() {
                   <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
                     <div>
                       <span className="text-muted-foreground">Store Name</span>
-                      <p className="font-medium">{viewRegTarget.name || "—"}</p>
+                      <p className="font-medium">{viewRegTarget.name || "�"}</p>
                     </div>
                     <div>
                       <span className="text-muted-foreground">Category</span>
                       <p className="font-medium">
-                        {viewRegTarget.category || "—"}
+                        {viewRegTarget.category || "�"}
                       </p>
                     </div>
                     <div>
                       <span className="text-muted-foreground">City</span>
-                      <p className="font-medium">{viewRegTarget.city || "—"}</p>
+                      <p className="font-medium">{viewRegTarget.city || "�"}</p>
                     </div>
                     <div>
                       <span className="text-muted-foreground">Barangay</span>
                       <p className="font-medium">
-                        {viewRegTarget.barangay || "—"}
+                        {viewRegTarget.barangay || "�"}
                       </p>
                     </div>
                     <div className="col-span-2">
                       <span className="text-muted-foreground">Address</span>
                       <p className="font-medium">
-                        {viewRegTarget.address || "—"}
+                        {viewRegTarget.address || "�"}
                       </p>
                     </div>
                     <div className="col-span-2">
                       <span className="text-muted-foreground">Description</span>
                       <p className="font-medium text-xs leading-relaxed">
-                        {viewRegTarget.description || "—"}
+                        {viewRegTarget.description || "�"}
                       </p>
                     </div>
                   </div>
@@ -912,7 +912,7 @@ export default function AdminSellersPage() {
                           Full Name
                         </span>
                         <p className="font-medium">
-                          {viewRegTarget.ownerName || "—"}
+                          {viewRegTarget.ownerName || "�"}
                         </p>
                       </div>
                     </div>
@@ -923,7 +923,7 @@ export default function AdminSellersPage() {
                           Email
                         </span>
                         <p className="font-medium truncate">
-                          {viewRegTarget.email || "—"}
+                          {viewRegTarget.email || "�"}
                         </p>
                       </div>
                     </div>
@@ -934,7 +934,7 @@ export default function AdminSellersPage() {
                           Contact
                         </span>
                         <p className="font-medium">
-                          {viewRegTarget.contact || viewRegTarget.phone || "—"}
+                          {viewRegTarget.contact || viewRegTarget.phone || "�"}
                         </p>
                       </div>
                     </div>
@@ -945,7 +945,7 @@ export default function AdminSellersPage() {
                           ID Type
                         </span>
                         <p className="font-medium">
-                          {viewRegTarget.governmentIdType || "—"}
+                          {viewRegTarget.governmentIdType || "�"}
                         </p>
                       </div>
                     </div>

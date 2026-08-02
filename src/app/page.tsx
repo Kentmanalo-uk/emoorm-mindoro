@@ -6,7 +6,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { useLanguage } from "@/contexts/language-context";
-import { Star, Search, MapPin, ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
+import { Star, Search, MapPin, ChevronLeft, ChevronRight, ShoppingCart, ArrowUpRight, Smartphone } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { cn } from "@/lib/utils";
 import { useUser, useCollection, useStableMemo } from "@/supabase";
 import Image from "next/image";
@@ -96,6 +97,183 @@ const municipalities = [
   "Socorro",
   "Victoria",
 ];
+
+// ── Image search loading feedback ────────────────────────────────────────────
+const IMG_SEARCH_STEPS = [
+  { label: "Reading your photo", detail: "Extracting colors and shapes" },
+  { label: "Analyzing color palette", detail: "Mapping hues, saturation, tones" },
+  { label: "Detecting edges & texture", detail: "Sobel gradients and shape cues" },
+  { label: "Fingerprinting layout", detail: "Building a perceptual hash" },
+  { label: "Matching Mindoreño products", detail: "Comparing against local catalog" },
+  { label: "Ranking best matches", detail: "Boosting the strongest category" },
+];
+
+function ImageSearchLoader({ preview }: { preview: string | null }) {
+  const [stepIdx, setStepIdx] = useState(0);
+  const [progress, setProgress] = useState(6);
+
+  useEffect(() => {
+    const stepTimer = setInterval(() => {
+      setStepIdx((i) => (i + 1) % IMG_SEARCH_STEPS.length);
+    }, 1400);
+    const progTimer = setInterval(() => {
+      setProgress((p) => (p >= 92 ? 92 : p + Math.max(0.4, (95 - p) * 0.05)));
+    }, 120);
+    return () => { clearInterval(stepTimer); clearInterval(progTimer); };
+  }, []);
+
+  const step = IMG_SEARCH_STEPS[stepIdx];
+
+  return (
+    <div className="py-10">
+      {/* Reference image with scan animation */}
+      {preview && (
+        <div className="flex justify-center mb-6">
+          <div className="relative overflow-hidden shadow-lg ring-1 ring-black/5" style={{ width: 172, height: 172, borderRadius: 18 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={preview} alt="Searching" className="w-full h-full object-cover" />
+            <div className="ims-scan-line" />
+            <div className="ims-scan-tint" />
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-2 left-2 w-5 h-5 border-t-2 border-l-2 border-[#29a366] ims-corner" />
+              <div className="absolute top-2 right-2 w-5 h-5 border-t-2 border-r-2 border-[#29a366] ims-corner" style={{ animationDelay: "0.15s" }} />
+              <div className="absolute bottom-2 left-2 w-5 h-5 border-b-2 border-l-2 border-[#29a366] ims-corner" style={{ animationDelay: "0.3s" }} />
+              <div className="absolute bottom-2 right-2 w-5 h-5 border-b-2 border-r-2 border-[#29a366] ims-corner" style={{ animationDelay: "0.45s" }} />
+            </div>
+            {/* Floating dots orbiting the image */}
+            <span className="ims-orbit-dot ims-orbit-a" />
+            <span className="ims-orbit-dot ims-orbit-b" />
+          </div>
+        </div>
+      )}
+
+      {/* Status heading */}
+      <div className="text-center mb-4 min-h-[52px]">
+        <div className="flex items-center justify-center gap-2 mb-1">
+          <span className="ims-pulse-dot" />
+          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#29a366]">Finding similar products</span>
+        </div>
+        <div key={stepIdx} className="ims-fade">
+          <p className="text-[15px] font-semibold text-[#111]">{step.label}</p>
+          <p className="text-[12px] text-[#777] mt-0.5">{step.detail}</p>
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      <div className="max-w-[260px] mx-auto mb-2">
+        <div className="h-1 bg-black/[0.06] rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full transition-[width] duration-200 ease-out"
+            style={{
+              width: `${progress}%`,
+              background: "linear-gradient(90deg, #29a366 0%, #7dffb8 100%)",
+              boxShadow: "0 0 8px rgba(41,163,102,0.4)",
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Step dots */}
+      <div className="flex items-center justify-center gap-1.5 mb-8">
+        {IMG_SEARCH_STEPS.map((_, i) => (
+          <span
+            key={i}
+            className="h-1.5 rounded-full transition-all duration-300"
+            style={{
+              width: i === stepIdx ? 18 : 6,
+              background: i <= stepIdx ? "#29a366" : "rgba(0,0,0,0.12)",
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Skeleton product cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div
+            key={i}
+            className="bg-white rounded-[8px] overflow-hidden border border-black/[0.05] ims-card"
+            style={{ animationDelay: `${i * 0.07}s` }}
+          >
+            <div className="aspect-square w-full ims-shimmer" />
+            <div className="p-3 space-y-2">
+              <div className="h-3 w-3/4 rounded-full ims-shimmer" />
+              <div className="h-3 w-1/2 rounded-full ims-shimmer" />
+              <div className="h-4 w-1/3 rounded-full ims-shimmer" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <style jsx>{`
+        .ims-scan-line {
+          position: absolute; left: 0; right: 0; height: 2px;
+          background: linear-gradient(90deg, transparent, #7dffb8 20%, #29a366 50%, #7dffb8 80%, transparent);
+          box-shadow: 0 0 12px rgba(125, 255, 184, 0.9), 0 0 24px rgba(41, 163, 102, 0.5);
+          animation: ims-scan 1.8s ease-in-out infinite;
+          border-radius: 2px;
+        }
+        .ims-scan-tint {
+          position: absolute; inset: 0;
+          background: linear-gradient(180deg, rgba(41,163,102,0.05), rgba(125,255,184,0.09));
+          pointer-events: none;
+        }
+        .ims-corner { animation: ims-corner-pulse 1.4s ease-in-out infinite; border-radius: 4px; }
+        .ims-pulse-dot {
+          width: 6px; height: 6px; border-radius: 50%;
+          background: #29a366; box-shadow: 0 0 0 0 rgba(41,163,102,0.6);
+          animation: ims-dot-pulse 1.4s infinite;
+        }
+        .ims-fade { animation: ims-fade-up 0.5s ease-out both; }
+        .ims-shimmer {
+          background: linear-gradient(90deg, #f2f2f2 0%, #fafafa 40%, #f2f2f2 80%);
+          background-size: 200% 100%;
+          animation: ims-shimmer-move 1.5s linear infinite;
+        }
+        .ims-card { animation: ims-card-in 0.55s cubic-bezier(0.2,0.7,0.2,1) both; }
+        .ims-orbit-dot {
+          position: absolute; width: 6px; height: 6px; border-radius: 50%;
+          background: #7dffb8; top: 50%; left: 50%;
+          box-shadow: 0 0 10px rgba(125,255,184,0.9);
+        }
+        .ims-orbit-a { animation: ims-orbit 2.2s linear infinite; }
+        .ims-orbit-b { animation: ims-orbit 2.2s linear infinite; animation-delay: -1.1s; background: #29a366; }
+
+        @keyframes ims-scan {
+          0%   { top: 8%;  opacity: 0; }
+          10%  { opacity: 1; }
+          90%  { opacity: 1; }
+          100% { top: 92%; opacity: 0; }
+        }
+        @keyframes ims-corner-pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50%      { opacity: 0.55; transform: scale(1.12); }
+        }
+        @keyframes ims-dot-pulse {
+          0%   { box-shadow: 0 0 0 0 rgba(41,163,102,0.7); }
+          70%  { box-shadow: 0 0 0 10px rgba(41,163,102,0); }
+          100% { box-shadow: 0 0 0 0 rgba(41,163,102,0); }
+        }
+        @keyframes ims-fade-up {
+          from { opacity: 0; transform: translateY(6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes ims-shimmer-move {
+          0%   { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+        @keyframes ims-card-in {
+          from { opacity: 0; transform: translateY(10px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes ims-orbit {
+          0%   { transform: translate(-50%, -50%) rotate(0deg) translateX(78px) rotate(0deg); }
+          100% { transform: translate(-50%, -50%) rotate(360deg) translateX(78px) rotate(-360deg); }
+        }
+      `}</style>
+    </div>
+  );
+}
 
 function HomePageInner() {
   const { isUserLoading } = useUser();
@@ -723,182 +901,134 @@ function HomePageInner() {
             </div>
             <div className="flex-1 flex flex-col gap-0.5">
 
-              {/* Seller Ad � Panel 1: "Start Selling" */}
-              <Link href="/sell" className="relative flex-1 overflow-hidden group block">
-                {/* Base: near-black green */}
-                <div className="absolute inset-0" style={{ background: "#041009" }} />
-                {/* Diagonal colour band � the main graphic element */}
-                <div className="absolute pointer-events-none" style={{
-                  background: "#29a366",
-                  width: "170%", height: "48%",
-                  top: "26%", left: "-35%",
-                  transform: "rotate(-7deg)",
-                  zIndex: 1,
-                }} />
-                {/* Halftone-style dot grid on the band */}
-                <div className="absolute pointer-events-none" style={{
-                  width: "170%", height: "48%",
-                  top: "26%", left: "-35%",
-                  transform: "rotate(-7deg)",
-                  backgroundImage: "radial-gradient(circle, rgba(0,0,0,0.18) 1.5px, transparent 1.5px)",
-                  backgroundSize: "10px 10px",
-                  zIndex: 2,
-                }} />
-                {/* Thin accent line above band */}
-                <div className="absolute pointer-events-none" style={{
-                  background: "#7dffb8",
-                  width: "170%", height: "2px",
-                  top: "26%", left: "-35%",
-                  transform: "rotate(-7deg)",
-                  zIndex: 3,
-                }} />
-                {/* Thin accent line below band */}
-                <div className="absolute pointer-events-none" style={{
-                  background: "#7dffb8",
-                  width: "170%", height: "2px",
-                  top: "calc(26% + 48%)", left: "-35%",
-                  transform: "rotate(-7deg)",
-                  zIndex: 3,
-                }} />
-                {/* Bottom-left corner bracket */}
-                <div className="absolute bottom-0 left-0 pointer-events-none" style={{
-                  width: 0, height: 0,
-                  borderBottom: "52px solid #29a366",
-                  borderRight: "52px solid transparent",
-                  opacity: 0.35,
-                  zIndex: 2,
-                }} />
-                {/* Oversized decorative "SELL" watermark top-right */}
-                <div className="absolute select-none pointer-events-none" style={{
-                  right: -6, top: -4,
-                  fontSize: "4.8rem", fontWeight: 900,
-                  color: "rgba(41,163,102,0.12)",
-                  lineHeight: 1, letterSpacing: "-0.06em",
-                  zIndex: 1,
-                }}>SELL</div>
-                {/* "FREE" 16-point starburst badge */}
-                <div className="absolute pointer-events-none" style={{
-                  top: 10, right: 10, width: 40, height: 40,
-                  background: "#ffd700",
-                  clipPath: "polygon(50% 0%,56% 33%,87% 12%,72% 41%,100% 50%,72% 59%,87% 88%,56% 67%,50% 100%,44% 67%,13% 88%,28% 59%,0% 50%,28% 41%,13% 12%,44% 33%)",
-                  zIndex: 10,
-                }} />
-                <div className="absolute pointer-events-none" style={{
-                  top: 10, right: 10, width: 40, height: 40, zIndex: 11,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: "7px", fontWeight: 900, color: "#041009",
-                  letterSpacing: "0.04em", textAlign: "center", lineHeight: 1.1,
-                }}>FREE</div>
+              {/* Seller Ad — Panel 1: "Start Selling" */}
+              <Link
+                href="/sell"
+                className="relative flex-1 overflow-hidden rounded-tr-[5px] group block"
+              >
+                {/* Background: brand green gradient */}
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #29a366 0%, #1f8a52 55%, #146d3f 100%)",
+                  }}
+                />
+                {/* Dynamic graphic: oversized outlined peso mark */}
+                <div
+                  aria-hidden
+                  className="absolute pointer-events-none select-none"
+                  style={{
+                    right: "-2.5rem",
+                    bottom: "-4.5rem",
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: "18rem",
+                    fontWeight: 900,
+                    lineHeight: 1,
+                    letterSpacing: "-0.08em",
+                    color: "transparent",
+                    WebkitTextStroke: "2px rgba(255,255,255,0.18)",
+                  }}
+                >
+                  ₱
+                </div>
+                {/* Diagonal accent slab */}
+                <div
+                  aria-hidden
+                  className="absolute pointer-events-none"
+                  style={{
+                    left: "-10%",
+                    top: "62%",
+                    width: "80%",
+                    height: "4px",
+                    background: "#7dffb8",
+                    transform: "rotate(-8deg)",
+                    borderRadius: 2,
+                    opacity: 0.9,
+                  }}
+                />
+
                 {/* Content */}
-                <div className="absolute inset-0 flex flex-col justify-between p-4" style={{ zIndex: 20 }}>
-                  <p style={{ color: "rgba(255,255,255,0.38)", fontSize: "0.52rem", fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase" }}>
-                    For Local Producers
-                  </p>
-                  <div>
-                    <p style={{ color: "white", fontWeight: 900, lineHeight: 0.86, letterSpacing: "-0.04em", fontSize: "1.5rem", textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}>
-                      START<br />SELLING<br /><span style={{ color: "#7dffb8" }}>TODAY</span>
-                    </p>
+                <div className="absolute inset-0 flex flex-col justify-between p-5" style={{ zIndex: 2 }}>
+                  <div className="flex items-start justify-between">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75">
+                      For local producers
+                    </span>
+                    <span className="inline-flex items-center h-6 px-2.5 rounded-full bg-white text-[10px] font-bold tracking-wider text-[#146d3f]">
+                      FREE
+                    </span>
                   </div>
-                  <div>
-                    <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.58rem", lineHeight: 1.45, marginBottom: 8 }}>
-                      Reach buyers across<br />Oriental Mindoro
+
+                  <h3
+                    className="text-white font-bold leading-[1.02]"
+                    style={{ fontSize: "1.7rem", letterSpacing: "-0.03em" }}
+                  >
+                    Start selling
+                    <br />
+                    today.
+                  </h3>
+
+                  <div className="flex items-center justify-between">
+                    <p className="text-white/70 text-[11px] leading-snug max-w-[60%]">
+                      Reach buyers across Oriental Mindoro.
                     </p>
-                    <span
-                      className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-3 py-1.5 transition-all group-hover:gap-2.5"
-                      style={{ background: "#ffd700", color: "#041009", clipPath: "polygon(0 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 0 100%)", paddingRight: 14 }}
-                    >
-                      Register Now ?
+                    <span className="inline-flex items-center gap-1.5 text-white text-[12px] font-semibold group-hover:gap-2 transition-all">
+                      Register
+                      <ArrowUpRight className="h-4 w-4" />
                     </span>
                   </div>
                 </div>
               </Link>
 
-              {/* Seller Ad � Panel 2: "Earn Online" */}
-              <Link href="/sell" className="relative flex-1 overflow-hidden rounded-br-[5px] group block">
-                {/* Base: near-black dark */}
-                <div className="absolute inset-0" style={{ background: "#140500" }} />
-                {/* Diagonal colour band */}
-                <div className="absolute pointer-events-none" style={{
-                  background: "linear-gradient(90deg, #ff6b35, #e03010)",
-                  width: "170%", height: "48%",
-                  top: "26%", left: "-35%",
-                  transform: "rotate(-7deg)",
-                  zIndex: 1,
-                }} />
-                {/* Halftone dots on band */}
-                <div className="absolute pointer-events-none" style={{
-                  width: "170%", height: "48%",
-                  top: "26%", left: "-35%",
-                  transform: "rotate(-7deg)",
-                  backgroundImage: "radial-gradient(circle, rgba(0,0,0,0.18) 1.5px, transparent 1.5px)",
-                  backgroundSize: "10px 10px",
-                  zIndex: 2,
-                }} />
-                {/* Accent lines */}
-                <div className="absolute pointer-events-none" style={{
-                  background: "#ffb380",
-                  width: "170%", height: "2px",
-                  top: "26%", left: "-35%",
-                  transform: "rotate(-7deg)", zIndex: 3,
-                }} />
-                <div className="absolute pointer-events-none" style={{
-                  background: "#ffb380",
-                  width: "170%", height: "2px",
-                  top: "calc(26% + 48%)", left: "-35%",
-                  transform: "rotate(-7deg)", zIndex: 3,
-                }} />
-                {/* Bottom-left corner bracket */}
-                <div className="absolute bottom-0 left-0 pointer-events-none" style={{
-                  width: 0, height: 0,
-                  borderBottom: "52px solid #ff6b35",
-                  borderRight: "52px solid transparent",
-                  opacity: 0.32, zIndex: 2,
-                }} />
-                {/* Oversized "?" decorative watermark */}
-                <div className="absolute select-none pointer-events-none" style={{
-                  right: -4, top: "50%",
-                  transform: "translateY(-50%)",
-                  fontSize: "5.5rem", fontWeight: 900,
-                  color: "rgba(255,107,53,0.12)",
-                  lineHeight: 1, zIndex: 1,
-                }}>?</div>
-                {/* "JOIN FREE" starburst badge */}
-                <div className="absolute pointer-events-none" style={{
-                  top: 10, right: 10, width: 40, height: 40,
-                  background: "#ff6b35",
-                  clipPath: "polygon(50% 0%,56% 33%,87% 12%,72% 41%,100% 50%,72% 59%,87% 88%,56% 67%,50% 100%,44% 67%,13% 88%,28% 59%,0% 50%,28% 41%,13% 12%,44% 33%)",
-                  border: "2px solid rgba(255,255,255,0.25)", zIndex: 10,
-                }} />
-                <div className="absolute pointer-events-none" style={{
-                  top: 10, right: 10, width: 40, height: 40, zIndex: 11,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: "6px", fontWeight: 900, color: "white",
-                  letterSpacing: "0.04em", textAlign: "center", lineHeight: 1.1,
-                }}>JOIN<br />FREE</div>
-                {/* Content */}
-                <div className="absolute inset-0 flex flex-col justify-between p-4" style={{ zIndex: 20 }}>
-                  <p style={{ color: "rgba(255,255,255,0.38)", fontSize: "0.52rem", fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase" }}>
-                    Earn Online
-                  </p>
-                  <div>
-                    <p style={{ color: "white", fontWeight: 900, lineHeight: 0.86, letterSpacing: "-0.04em", fontSize: "1.5rem", textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}>
-                      GROW<br />YOUR<br /><span style={{ color: "#ffb380" }}>BUSINESS</span>
+              {/* Ad — Panel 2: "Try on mobile" QR card */}
+              <Link
+                href="/"
+                className="relative flex-1 overflow-hidden rounded-br-[5px] group block"
+              >
+                {/* Background: soft cream so QR reads cleanly */}
+                <div
+                  className="absolute inset-0"
+                  style={{ background: "linear-gradient(135deg, #ffffff 0%, #f4f6f2 100%)" }}
+                />
+                {/* Subtle brand accent stripe on the left edge */}
+                <div
+                  aria-hidden
+                  className="absolute left-0 top-0 bottom-0 pointer-events-none"
+                  style={{ width: 4, background: "#29a366" }}
+                />
+
+                {/* Content: text on left, QR on right */}
+                <div className="absolute inset-0 flex items-center justify-between gap-4 pl-6 pr-4" style={{ zIndex: 2 }}>
+                  <div className="flex flex-col gap-1.5 min-w-0">
+                    <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#29a366]">
+                      <Smartphone className="h-3 w-3" />
+                      Get the app
+                    </span>
+                    <h3
+                      className="text-[#0f1a14] font-bold leading-[1.05]"
+                      style={{ fontSize: "1.35rem", letterSpacing: "-0.025em" }}
+                    >
+                      Try Emoorm
+                      <br />
+                      on mobile.
+                    </h3>
+                    <p className="text-[#666] text-[10.5px] leading-snug">
+                      Scan the code with your phone camera.
                     </p>
                   </div>
-                  <div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 2, marginBottom: 8 }}>
-                      {["Free to list", "Fast payouts", "More buyers"].map((b) => (
-                        <span key={b} style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.57rem", display: "flex", alignItems: "center", gap: 4 }}>
-                          <span style={{ color: "#ff6b35", fontWeight: 900 }}>?</span> {b}
-                        </span>
-                      ))}
-                    </div>
-                    <span
-                      className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-3 py-1.5 transition-all group-hover:gap-2.5"
-                      style={{ background: "white", color: "#e03010", clipPath: "polygon(0 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 0 100%)", paddingRight: 14 }}
-                    >
-                      Start Earning ?
-                    </span>
+
+                  <div
+                    className="shrink-0 rounded-xl bg-white p-2 border border-black/[0.06]"
+                    style={{ boxShadow: "0 4px 14px rgba(0,0,0,0.06)" }}
+                  >
+                    <QRCodeSVG
+                      value="https://emoormshop.vercel.app"
+                      size={96}
+                      bgColor="#ffffff"
+                      fgColor="#0f1a14"
+                      level="M"
+                      marginSize={0}
+                    />
                   </div>
                 </div>
               </Link>
@@ -1687,46 +1817,7 @@ function HomePageInner() {
                     ) : filteredProducts.length === 0 ? (
                       <div className="col-span-full">
                         {imageSearchIds[0] === "searching" ? (
-                          /* ── Image search loading state ── */
-                          <div className="py-10">
-                            {/* Reference image with scan animation */}
-                            {imgSearchPreview && (
-                              <div className="flex justify-center mb-8">
-                                <div className="relative rounded-2xl overflow-hidden shadow-lg" style={{ width: 160, height: 160 }}>
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src={imgSearchPreview} alt="Searching" className="w-full h-full object-cover" />
-                                  {/* Scanning line */}
-                                  <div className="img-search-scan-line" />
-                                  {/* Pulsing overlay corners */}
-                                  <div className="absolute inset-0 pointer-events-none">
-                                    <div className="absolute top-2 left-2 w-5 h-5 border-t-2 border-l-2 border-[#29a366] rounded-tl-md img-search-corner-pulse" />
-                                    <div className="absolute top-2 right-2 w-5 h-5 border-t-2 border-r-2 border-[#29a366] rounded-tr-md img-search-corner-pulse" style={{ animationDelay: "0.15s" }} />
-                                    <div className="absolute bottom-2 left-2 w-5 h-5 border-b-2 border-l-2 border-[#29a366] rounded-bl-md img-search-corner-pulse" style={{ animationDelay: "0.3s" }} />
-                                    <div className="absolute bottom-2 right-2 w-5 h-5 border-b-2 border-r-2 border-[#29a366] rounded-br-md img-search-corner-pulse" style={{ animationDelay: "0.45s" }} />
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                            {/* Cycling status text */}
-                            <ImageSearchStatusText />
-                            {/* Skeleton product cards */}
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-8">
-                              {Array.from({ length: 8 }).map((_, i) => (
-                                <div
-                                  key={i}
-                                  className="bg-white rounded-[5px] overflow-hidden img-search-skeleton-card"
-                                  style={{ animationDelay: `${i * 0.07}s` }}
-                                >
-                                  <div className="aspect-square w-full img-search-shimmer" />
-                                  <div className="p-3 space-y-2">
-                                    <div className="h-3 w-3/4 rounded-full img-search-shimmer" />
-                                    <div className="h-3 w-1/2 rounded-full img-search-shimmer" />
-                                    <div className="h-4 w-1/3 rounded-full img-search-shimmer" />
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
+                          <ImageSearchLoader preview={imgSearchPreview} />
                         ) : imageSearchIds.length > 0 ? (
                           <div className="text-center py-20 text-muted-foreground italic">
                             No visually similar products found.

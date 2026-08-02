@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -235,7 +235,7 @@ export default function AdminAnalyticsPage() {
   const statsCards = [
     {
       title: "Total Revenue",
-      value: `₱${totalRevenue.toLocaleString()}`,
+      value: `?${totalRevenue.toLocaleString()}`,
       trend: revenueTrend,
       icon: DollarSign,
       color: "text-green-600 bg-green-50 dark:bg-green-500/10",
@@ -265,10 +265,10 @@ export default function AdminAnalyticsPage() {
 
   return (
     <AdminLayout>
-      <div className="max-w-7xl mx-auto p-6 md:p-8 w-full pt-6 md:pt-32 pb-24 space-y-8 md:space-y-10">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6 pt-6 pb-8 space-y-4">
         {/* Header */}
         <div>
-          <h1 className="text-2xl md:text-3xl font-normal font-headline tracking-[-0.05em] text-black dark:text-white">
+          <h1 className="text-lg font-semibold text-[#111]">
             Analytics
           </h1>
           <p className="text-sm text-muted-foreground font-normal">
@@ -282,7 +282,7 @@ export default function AdminAnalyticsPage() {
             {Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
-                className="rounded-[24px] border border-black/[0.02] bg-white dark:bg-white/[0.03] p-5"
+                className="rounded-xl border border-black/[0.06] bg-white p-5"
               >
                 <Skeleton className="h-10 w-10 rounded-full mb-3" />
                 <Skeleton className="h-3 w-16 rounded-full mb-2" />
@@ -299,7 +299,7 @@ export default function AdminAnalyticsPage() {
               return (
                 <Card
                   key={card.title}
-                  className="shadow-[0_12px_40px_rgba(0,0,0,0.03)] border border-black/[0.02] rounded-[24px] bg-white dark:bg-white/[0.03]"
+                  className="border border-black/[0.06] rounded-xl bg-white"
                 >
                   <CardContent className="p-5">
                     <div
@@ -310,7 +310,7 @@ export default function AdminAnalyticsPage() {
                     <p className="text-xs text-muted-foreground font-medium mb-0.5">
                       {card.title}
                     </p>
-                    <p className="text-xl md:text-2xl font-normal font-headline tracking-[-0.05em]">
+                    <p className="text-xl font-bold text-[#111]">
                       {card.value}
                     </p>
                     <div className="flex items-center gap-1 mt-1.5">
@@ -336,9 +336,9 @@ export default function AdminAnalyticsPage() {
         )}
 
         {/* Revenue Chart */}
-        <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03]">
+        <Card className="border border-black/[0.06] rounded-xl bg-white">
           <CardContent className="p-6 md:p-8">
-            <h3 className="text-lg font-medium font-headline tracking-[-0.02em] mb-6">
+            <h3 className="text-sm font-semibold text-[#111] mb-6">
               Revenue Trends
             </h3>
             {isLoading ? (
@@ -365,12 +365,12 @@ export default function AdminAnalyticsPage() {
                     axisLine={false}
                     tickLine={false}
                     tickFormatter={(v) =>
-                      `₱${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`
+                      `?${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`
                     }
                   />
                   <Tooltip
                     formatter={(v: any) => [
-                      `₱${Number(v).toLocaleString()}`,
+                      `?${Number(v).toLocaleString()}`,
                       "Revenue",
                     ]}
                     contentStyle={{
@@ -395,9 +395,9 @@ export default function AdminAnalyticsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Category Breakdown */}
-          <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03]">
+          <Card className="border border-black/[0.06] rounded-xl bg-white">
             <CardContent className="p-6 md:p-8">
-              <h3 className="text-lg font-medium font-headline tracking-[-0.02em] mb-6">
+              <h3 className="text-sm font-semibold text-[#111] mb-6">
                 Product Categories
               </h3>
               {isLoading ? (
@@ -440,9 +440,9 @@ export default function AdminAnalyticsPage() {
           </Card>
 
           {/* Order Status Pie */}
-          <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03]">
+          <Card className="border border-black/[0.06] rounded-xl bg-white">
             <CardContent className="p-6 md:p-8">
-              <h3 className="text-lg font-medium font-headline tracking-[-0.02em] mb-6">
+              <h3 className="text-sm font-semibold text-[#111] mb-6">
                 Order Status
               </h3>
               {isLoading ? (
@@ -507,9 +507,9 @@ export default function AdminAnalyticsPage() {
         </div>
 
         {/* Top Sellers */}
-        <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03]">
+        <Card className="border border-black/[0.06] rounded-xl bg-white">
           <CardContent className="p-6 md:p-8">
-            <h3 className="text-lg font-medium font-headline tracking-[-0.02em] mb-6">
+            <h3 className="text-sm font-semibold text-[#111] mb-6">
               Top Sellers
             </h3>
             {isLoading ? (
@@ -543,7 +543,7 @@ export default function AdminAnalyticsPage() {
                         {seller.orders} orders
                       </span>
                       <span className="font-medium">
-                        ₱{seller.revenue.toLocaleString()}
+                        ?{seller.revenue.toLocaleString()}
                       </span>
                     </div>
                   </div>

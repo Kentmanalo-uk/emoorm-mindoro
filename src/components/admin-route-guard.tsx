@@ -1,37 +1,40 @@
-﻿"use client";
+"use client";
 
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 
-/**
- * Admin routes that admins ARE allowed to access.
- * Everything else will redirect them to /admin/dashboard.
- */
-const ADMIN_ALLOWED_PATHS = ["/admin", "/login", "/signup", "/auth"];
+const ADMIN_ONLY_PREFIX = "/admin";
 
-/**
- * Redirects admin users away from regular user pages to the admin dashboard.
- * Admin accounts can only access /admin/* routes + login/signup/auth.
- */
+const PUBLIC_ALLOWED_FOR_ADMIN = [
+  "/login",
+  "/signup",
+  "/confirm-email",
+  "/auth",
+  "/privacy",
+  "/terms",
+  "/customer-care",
+  "/offline",
+];
+
 export function AdminRouteGuard({ children }: { children: React.ReactNode }) {
   const { isAdmin, isAdminLoading } = useIsAdmin();
-  const pathname = usePathname();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (isAdminLoading) return;
-    if (!isAdmin) return;
+    if (isAdminLoading || !isAdmin || !pathname) return;
 
-    // Check if current path is allowed for admins
-    const isAllowed = ADMIN_ALLOWED_PATHS.some((p) => pathname.startsWith(p));
+    const inAdminArea = pathname.startsWith(ADMIN_ONLY_PREFIX);
+    if (inAdminArea) return;
 
-    if (!isAllowed) {
-      router.replace("/admin/dashboard");
-    }
+    const isPublicAllowed = PUBLIC_ALLOWED_FOR_ADMIN.some(
+      (p) => pathname === p || pathname.startsWith(`${p}/`),
+    );
+    if (isPublicAllowed) return;
+
+    router.replace("/admin/dashboard");
   }, [isAdmin, isAdminLoading, pathname, router]);
 
-  // While checking, show the page normally (avoids flash)
-  // The redirect will happen via useEffect if needed
   return <>{children}</>;
 }

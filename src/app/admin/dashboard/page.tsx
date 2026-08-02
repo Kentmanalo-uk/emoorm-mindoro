@@ -4,19 +4,13 @@ import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AdminLayout } from "@/components/layout/admin-layout";
 import { useIsAdmin } from "@/hooks/use-is-admin";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   DollarSign,
   Package,
   Users,
   TrendingUp,
-  MoreVertical,
   BarChart3,
-  Settings,
   Store,
-  MessageCircle,
   FileText,
   Star,
   ShieldCheck,
@@ -29,12 +23,6 @@ import {
 import Link from "next/link";
 import { useStableMemo, useCollection } from "@/supabase";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   XAxis,
   YAxis,
@@ -203,190 +191,104 @@ export default function AdminDashboardPage() {
 
   return (
     <AdminLayout>
-      <div className="max-w-7xl mx-auto p-6 md:p-8 w-full pt-6 md:pt-32 pb-24 space-y-8 md:space-y-10">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6 pt-6 pb-8 space-y-4">
         {/* Header */}
-        <div className="flex items-center justify-between gap-4">
+        <div className="bg-white rounded-xl border border-black/[0.06] px-6 py-5 flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-normal font-headline tracking-[-0.05em] text-black dark:text-white">
+            <h1 className="text-lg font-semibold text-[#111]">
               Admin Dashboard
             </h1>
-            <p className="text-sm text-muted-foreground font-normal">
+            <p className="text-sm text-[#888]">
               Oversight &amp; moderation · Order details remain private to
               buyers and sellers
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="rounded-full h-10 w-10"
-                >
-                  <MoreVertical className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="w-56 rounded-2xl p-1 shadow-[0_20px_50px_rgba(0,0,0,0.1)] bg-white/30 backdrop-blur-xl border-none"
-              >
-                <DropdownMenuItem
-                  asChild
-                  className="rounded-xl gap-3 px-3 py-2.5 cursor-pointer"
-                >
-                  <Link href="/admin/users">
-                    <Users className="h-4 w-4" /> Users
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  asChild
-                  className="rounded-xl gap-3 px-3 py-2.5 cursor-pointer"
-                >
-                  <Link href="/admin/sellers">
-                    <Store className="h-4 w-4" /> Sellers
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  asChild
-                  className="rounded-xl gap-3 px-3 py-2.5 cursor-pointer"
-                >
-                  <Link href="/admin/products">
-                    <Package className="h-4 w-4" /> Products
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  asChild
-                  className="rounded-xl gap-3 px-3 py-2.5 cursor-pointer"
-                >
-                  <Link href="/admin/reviews">
-                    <Star className="h-4 w-4" /> Reviews
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  asChild
-                  className="rounded-xl gap-3 px-3 py-2.5 cursor-pointer"
-                >
-                  <Link href="/admin/reports">
-                    <FileText className="h-4 w-4" /> Reports
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  asChild
-                  className="rounded-xl gap-3 px-3 py-2.5 cursor-pointer"
-                >
-                  <Link href="/admin/audit-log">
-                    <ShieldCheck className="h-4 w-4" /> Audit Log
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  asChild
-                  className="rounded-xl gap-3 px-3 py-2.5 cursor-pointer"
-                >
-                  <Link href="/admin/analytics">
-                    <BarChart3 className="h-4 w-4" /> Analytics
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  asChild
-                  className="rounded-xl gap-3 px-3 py-2.5 cursor-pointer"
-                >
-                  <Link href="/admin/settings">
-                    <Settings className="h-4 w-4" /> Settings
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <Link href="/admin/analytics" className="hidden md:block">
+            <button
+              className="flex items-center gap-2 h-9 px-5 rounded-xl text-white text-sm font-semibold"
+              style={{ background: "#29a366" }}
+            >
+              <BarChart3 className="h-4 w-4" /> Analytics
+            </button>
+          </Link>
         </div>
 
         {isLoading ? (
           <>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div
                   key={i}
-                  className="rounded-[32px] border border-black/[0.02] bg-white dark:bg-white/[0.03] p-6 md:p-8"
+                  className="bg-white rounded-xl border border-black/[0.06] p-5"
                 >
-                  <Skeleton className="h-12 w-12 rounded-2xl mb-6" />
-                  <Skeleton className="h-3 w-20 rounded-full mb-2" />
-                  <Skeleton className="h-7 w-16 rounded-full" />
+                  <Skeleton className="h-3 w-20 rounded mb-2" />
+                  <Skeleton className="h-6 w-16 rounded" />
                 </div>
               ))}
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 rounded-[32px] border border-black/[0.02] bg-white dark:bg-white/[0.03] p-6">
-                <Skeleton className="h-5 w-36 rounded-full mb-4" />
-                <Skeleton className="h-[300px] w-full rounded-2xl" />
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="flex-1 bg-white rounded-xl border border-black/[0.06] p-5">
+                <Skeleton className="h-4 w-36 rounded mb-4" />
+                <Skeleton className="h-[240px] w-full rounded" />
               </div>
-              <div className="rounded-[32px] border border-black/[0.02] bg-white dark:bg-white/[0.03] p-6">
-                <Skeleton className="h-5 w-36 rounded-full mb-4" />
+              <div className="lg:w-[320px] bg-white rounded-xl border border-black/[0.06] p-5">
+                <Skeleton className="h-4 w-36 rounded mb-4" />
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <Skeleton key={i} className="h-14 w-full rounded-full mb-3" />
+                  <Skeleton key={i} className="h-10 w-full rounded mb-2" />
                 ))}
               </div>
             </div>
           </>
         ) : (
           <>
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-              {stats.map((stat) => {
-                const Icon = stat.icon;
-                return (
-                  <Card
-                    key={stat.label}
-                    className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03]"
-                  >
-                    <CardContent className="p-6 md:p-8">
-                      <div className="flex justify-between items-start mb-6">
-                        <div className={`p-3 rounded-2xl ${stat.color}`}>
-                          <Icon className="h-6 w-6 md:h-7 md:w-7" />
-                        </div>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "font-bold rounded-full px-3 py-1 text-[10px] md:text-xs",
-                            stat.positive
-                              ? "text-green-600 border-green-200 bg-green-50"
-                              : "text-red-600 border-red-200 bg-red-50",
-                          )}
-                        >
-                          {stat.trend}
-                        </Badge>
-                      </div>
-                      <p className="text-xs md:text-sm text-muted-foreground font-medium mb-1 tracking-tight">
-                        {stat.label}
-                      </p>
-                      <p className="text-xl md:text-3xl font-normal font-headline tracking-[-0.05em]">
-                        {stat.value}
-                      </p>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+            {/* Stats */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {stats.map((stat) => (
+                <div
+                  key={stat.label}
+                  className="bg-white rounded-xl border border-black/[0.06] p-5"
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs text-[#888]">{stat.label}</p>
+                    <span
+                      className={cn(
+                        "text-[10px] font-semibold px-1.5 py-0.5 rounded",
+                        stat.positive
+                          ? "text-[#29a366] bg-[#29a366]/10"
+                          : "text-red-600 bg-red-50",
+                      )}
+                    >
+                      {stat.trend}
+                    </span>
+                  </div>
+                  <p className="text-xl font-bold text-[#111]">{stat.value}</p>
+                </div>
+              ))}
             </div>
 
-            {/* Chart + Quick Actions */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-              <Card className="lg:col-span-2 shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03] overflow-hidden">
-                <CardContent className="p-6 md:p-8">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl md:text-2xl font-normal font-headline tracking-[-0.05em]">
-                      Revenue Overview
-                    </h2>
-                    <Link
-                      href="/admin/analytics"
-                      className="text-sm text-primary hover:underline"
-                    >
-                      View Details
-                    </Link>
+            {/* Chart + Quick actions */}
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="flex-1 min-w-0 bg-white rounded-xl border border-black/[0.06] overflow-hidden">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-black/[0.05]">
+                  <div>
+                    <p className="text-sm font-semibold text-[#111]">
+                      Revenue overview
+                    </p>
+                    <p className="text-[11px] text-[#888] mt-0.5">
+                      Aggregate platform revenue per month.
+                    </p>
                   </div>
-                  <p className="text-xs text-muted-foreground mb-4">
-                    Aggregate platform revenue per month. Individual order
-                    details are private.
-                  </p>
+                  <Link
+                    href="/admin/analytics"
+                    className="text-xs font-semibold"
+                    style={{ color: "#29a366" }}
+                  >
+                    View All
+                  </Link>
+                </div>
+                <div className="p-5">
                   {chartData.length > 0 ? (
-                    <div className="h-[280px] md:h-[350px]">
+                    <div className="h-[240px]">
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={chartData}>
                           <defs>
@@ -399,12 +301,12 @@ export default function AdminDashboardPage() {
                             >
                               <stop
                                 offset="5%"
-                                stopColor="hsl(var(--primary))"
-                                stopOpacity={0.1}
+                                stopColor="#29a366"
+                                stopOpacity={0.2}
                               />
                               <stop
                                 offset="95%"
-                                stopColor="hsl(var(--primary))"
+                                stopColor="#29a366"
                                 stopOpacity={0}
                               />
                             </linearGradient>
@@ -412,7 +314,7 @@ export default function AdminDashboardPage() {
                           <CartesianGrid
                             strokeDasharray="3 3"
                             vertical={false}
-                            stroke="#f0f0f0"
+                            stroke="#eee"
                           />
                           <XAxis
                             dataKey="name"
@@ -427,16 +329,17 @@ export default function AdminDashboardPage() {
                           />
                           <Tooltip
                             contentStyle={{
-                              borderRadius: "15px",
-                              border: "none",
-                              boxShadow: "0 10px 20px rgba(0,0,0,0.05)",
+                              borderRadius: "12px",
+                              border: "1px solid rgba(0,0,0,0.06)",
+                              boxShadow: "0 6px 18px rgba(0,0,0,0.06)",
+                              fontSize: 12,
                             }}
                           />
                           <Area
                             type="monotone"
                             dataKey="revenue"
-                            stroke="hsl(var(--primary))"
-                            strokeWidth={3}
+                            stroke="#29a366"
+                            strokeWidth={2}
                             fillOpacity={1}
                             fill="url(#adminColorRev)"
                           />
@@ -444,122 +347,142 @@ export default function AdminDashboardPage() {
                       </ResponsiveContainer>
                     </div>
                   ) : (
-                    <div className="h-[280px] md:h-[350px] flex items-center justify-center text-muted-foreground text-sm">
+                    <div className="h-[240px] flex items-center justify-center text-sm text-[#aaa] italic">
                       No revenue data yet.
                     </div>
                   )}
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03]">
-                <CardContent className="p-6 md:p-8">
-                  <h2 className="text-xl md:text-2xl font-normal font-headline tracking-[-0.05em] mb-4">
-                    Quick Actions
-                  </h2>
-                  <div className="space-y-3">
-                    <Link href="/admin/users">
-                      <button className="w-full flex items-center gap-3 rounded-full h-12 shadow-sm text-sm border-none bg-[#f8f8f8] dark:bg-white/[0.05] hover:bg-muted px-5 transition-all">
-                        <Users className="h-5 w-5 text-primary" /> Manage Users
-                      </button>
-                    </Link>
-                    <Link href="/admin/sellers">
-                      <button className="w-full flex items-center gap-3 rounded-full h-12 shadow-sm text-sm border-none bg-[#f8f8f8] dark:bg-white/[0.05] hover:bg-muted px-5 transition-all">
-                        <Store className="h-5 w-5 text-primary" /> Manage
-                        Sellers
-                      </button>
-                    </Link>
-                    <Link href="/admin/reports">
-                      <button className="w-full flex items-center gap-3 rounded-full h-12 shadow-sm text-sm border-none bg-[#f8f8f8] dark:bg-white/[0.05] hover:bg-muted px-5 transition-all">
-                        <FileText className="h-5 w-5 text-primary" /> Reports &
-                        Disputes
-                      </button>
-                    </Link>
-                    <Link href="/admin/broadcast">
-                      <button className="w-full flex items-center gap-3 rounded-full h-12 shadow-sm text-sm border-none bg-[#f8f8f8] dark:bg-white/[0.05] hover:bg-muted px-5 transition-all">
-                        <Megaphone className="h-5 w-5 text-primary" /> Broadcast
-                      </button>
-                    </Link>
-                  </div>
-                  <div className="pt-5 mt-4 border-t">
-                    <div className="flex items-center gap-4 p-5 bg-primary/5 rounded-2xl">
-                      <TrendingUp className="h-8 w-8 text-primary shrink-0" />
-                      <div>
-                        <p className="text-[10px] font-bold tracking-tight text-primary">
-                          Platform Status
-                        </p>
-                        <p className="text-sm font-medium leading-tight">
-                          {pendingSellerVerifications} seller
-                          {pendingSellerVerifications === 1 ? "" : "s"} pending
-                          verification · {openReportsCount} open report
-                          {openReportsCount === 1 ? "" : "s"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Moderation Shortcuts (replaces Recent Orders for privacy) */}
-            <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03] overflow-hidden">
-              <CardContent className="p-6 md:p-8">
-                <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-xl md:text-2xl font-normal font-headline tracking-[-0.05em]">
-                    Moderation & Tools
-                  </h2>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+              </div>
+
+              <div className="lg:w-[320px] bg-white rounded-xl border border-black/[0.06] overflow-hidden flex flex-col">
+                <div className="px-5 py-4 border-b border-black/[0.05]">
+                  <p className="text-sm font-semibold text-[#111]">
+                    Quick actions
+                  </p>
+                </div>
+                <div className="p-4 space-y-2 flex-1">
                   {[
                     {
-                      href: "/admin/products",
-                      icon: Package,
-                      label: "Products",
+                      href: "/admin/users",
+                      icon: Users,
+                      label: "Manage users",
                     },
-                    { href: "/admin/reviews", icon: Star, label: "Reviews" },
-                    { href: "/admin/bidding", icon: Gavel, label: "Bidding" },
+                    {
+                      href: "/admin/sellers",
+                      icon: Store,
+                      label: "Manage sellers",
+                    },
                     {
                       href: "/admin/reports",
                       icon: FileText,
-                      label: "Reports",
-                      badge: openReportsCount,
-                    },
-                    { href: "/admin/vouchers", icon: Tag, label: "Vouchers" },
-                    {
-                      href: "/admin/banners",
-                      icon: ImageIcon,
-                      label: "Banners",
+                      label: "Reports & disputes",
                     },
                     {
-                      href: "/admin/audit-log",
-                      icon: ShieldCheck,
-                      label: "Audit Log",
+                      href: "/admin/broadcast",
+                      icon: Megaphone,
+                      label: "Broadcast",
                     },
-                    {
-                      href: "/admin/system-health",
-                      icon: Activity,
-                      label: "System",
-                    },
-                  ].map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link href={item.href} key={item.href}>
-                        <div className="relative flex flex-col items-center justify-center gap-2 h-24 rounded-2xl bg-[#f8f8f8] dark:bg-white/[0.05] hover:bg-muted transition-all p-3">
-                          <Icon className="h-5 w-5 text-primary" />
-                          <span className="text-xs font-medium">
-                            {item.label}
-                          </span>
-                          {item.badge ? (
-                            <Badge className="absolute top-2 right-2 bg-red-500 text-white border-0 rounded-full px-1.5 py-0 text-[9px] h-4 min-w-[16px]">
-                              {item.badge}
-                            </Badge>
-                          ) : null}
-                        </div>
-                      </Link>
-                    );
-                  })}
+                  ].map(({ href, icon: Icon, label }) => (
+                    <Link key={href} href={href}>
+                      <button className="w-full flex items-center gap-2.5 h-10 rounded-xl text-xs font-medium text-[#333] bg-[#f2f2f0] hover:bg-[#e8e8e6] px-3 transition-colors">
+                        <Icon
+                          className="h-4 w-4"
+                          style={{ color: "#29a366" }}
+                        />
+                        {label}
+                      </button>
+                    </Link>
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
+                <div className="p-4 border-t border-black/[0.05]">
+                  <div
+                    className="flex items-start gap-3 p-3 rounded-xl"
+                    style={{ background: "#f0faf5" }}
+                  >
+                    <TrendingUp
+                      className="h-4 w-4 shrink-0 mt-0.5"
+                      style={{ color: "#29a366" }}
+                    />
+                    <div>
+                      <p
+                        className="text-[10px] font-bold uppercase tracking-wide"
+                        style={{ color: "#29a366" }}
+                      >
+                        Platform status
+                      </p>
+                      <p className="text-xs text-[#333] leading-snug mt-0.5">
+                        {pendingSellerVerifications} seller
+                        {pendingSellerVerifications === 1 ? "" : "s"} pending
+                        verification · {openReportsCount} open report
+                        {openReportsCount === 1 ? "" : "s"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Moderation shortcuts */}
+            <div className="bg-white rounded-xl border border-black/[0.06] overflow-hidden">
+              <div className="px-5 py-4 border-b border-black/[0.05]">
+                <p className="text-sm font-semibold text-[#111]">
+                  Moderation &amp; tools
+                </p>
+              </div>
+              <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[
+                  {
+                    href: "/admin/products",
+                    icon: Package,
+                    label: "Products",
+                  },
+                  { href: "/admin/reviews", icon: Star, label: "Reviews" },
+                  { href: "/admin/bidding", icon: Gavel, label: "Bidding" },
+                  {
+                    href: "/admin/reports",
+                    icon: FileText,
+                    label: "Reports",
+                    badge: openReportsCount,
+                  },
+                  { href: "/admin/vouchers", icon: Tag, label: "Vouchers" },
+                  {
+                    href: "/admin/banners",
+                    icon: ImageIcon,
+                    label: "Banners",
+                  },
+                  {
+                    href: "/admin/audit-log",
+                    icon: ShieldCheck,
+                    label: "Audit log",
+                  },
+                  {
+                    href: "/admin/system-health",
+                    icon: Activity,
+                    label: "System",
+                  },
+                ].map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link href={item.href} key={item.href}>
+                      <div className="relative flex flex-col items-center justify-center gap-2 h-20 rounded-xl bg-[#f2f2f0] hover:bg-[#e8e8e6] transition-colors p-3">
+                        <Icon
+                          className="h-4 w-4"
+                          style={{ color: "#29a366" }}
+                        />
+                        <span className="text-[11px] font-medium text-[#333]">
+                          {item.label}
+                        </span>
+                        {item.badge ? (
+                          <span className="absolute top-1.5 right-1.5 bg-red-500 text-white rounded-full px-1.5 text-[9px] font-bold h-4 min-w-[16px] flex items-center justify-center">
+                            {item.badge}
+                          </span>
+                        ) : null}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
           </>
         )}
       </div>

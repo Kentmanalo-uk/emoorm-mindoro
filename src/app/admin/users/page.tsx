@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -215,11 +215,11 @@ export default function AdminUsersPage() {
 
   return (
     <AdminLayout>
-      <div className="max-w-7xl mx-auto p-6 md:p-8 w-full pt-6 md:pt-32 pb-24 space-y-8 md:space-y-10">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6 pt-6 pb-8 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-normal font-headline tracking-[-0.05em] text-black dark:text-white">
+            <h1 className="text-lg font-semibold text-[#111]">
               User Management
             </h1>
             <p className="text-sm text-muted-foreground font-normal">
@@ -261,7 +261,7 @@ export default function AdminUsersPage() {
             return (
               <Card
                 key={stat.label}
-                className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03]"
+                className="border border-black/[0.06] rounded-xl bg-white"
               >
                 <CardContent className="p-5 md:p-8">
                   <div className={`p-3 rounded-2xl ${stat.color} w-fit mb-4`}>
@@ -270,7 +270,7 @@ export default function AdminUsersPage() {
                   <p className="text-xs text-muted-foreground font-medium mb-1">
                     {stat.label}
                   </p>
-                  <p className="text-xl md:text-3xl font-normal font-headline tracking-[-0.05em]">
+                  <p className="text-xl font-bold text-[#111]">
                     {stat.value}
                   </p>
                 </CardContent>
@@ -317,7 +317,7 @@ export default function AdminUsersPage() {
             {Array.from({ length: 5 }).map((_, i) => (
               <div
                 key={i}
-                className="rounded-[32px] border border-black/[0.02] bg-white dark:bg-white/[0.03] p-5 flex items-center gap-4"
+                className="rounded-xl border border-black/[0.06] bg-white p-5 flex items-center gap-4"
               >
                 <Skeleton className="h-12 w-12 rounded-full" />
                 <div className="flex-1 space-y-2">
@@ -329,7 +329,7 @@ export default function AdminUsersPage() {
             ))}
           </div>
         ) : (
-          <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03] overflow-hidden">
+          <Card className="border border-black/[0.06] rounded-xl bg-white overflow-hidden">
             <CardContent className="p-0">
               {filteredUsers.length === 0 ? (
                 <div className="text-center py-20">
@@ -411,7 +411,7 @@ export default function AdminUsersPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent
                             align="end"
-                            className="w-48 rounded-2xl p-1 shadow-[0_20px_50px_rgba(0,0,0,0.1)] bg-white/80 backdrop-blur-xl border-none"
+                            className="w-48 rounded-xl p-1 bg-white border border-black/[0.06] shadow-md"
                           >
                             <DropdownMenuItem
                               className="rounded-xl gap-3 px-3 py-2.5 cursor-pointer"

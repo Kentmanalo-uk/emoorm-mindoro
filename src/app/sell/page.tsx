@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -251,9 +251,10 @@ export default function SellLandingPage() {
   );
   const { data: store, isLoading: storeLoading } = useDoc(storeRef);
 
-  const openAuthModal = (mode: "signin" | "signup") => {
+  const goToAuth = (mode: "signin" | "signup") => {
     sessionStorage.setItem("sellerAuthIntent", "true");
-    router.push(`?auth=${mode}`);
+    const path = mode === "signin" ? "/login" : "/signup";
+    router.push(`${path}?redirect=/sell`);
   };
 
   useEffect(() => {
@@ -273,7 +274,7 @@ export default function SellLandingPage() {
 
   const handleCTA = () => {
     if (!user) {
-      openAuthModal("signup");
+      goToAuth("signup");
       return;
     }
     router.push(store ? "/seller/dashboard" : "/seller/register");
@@ -290,7 +291,7 @@ export default function SellLandingPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      {/* ── Top announcement bar ─────────────────────────────── */}
+      {/* -- Top announcement bar ------------------------------- */}
       <div
         className="h-10 flex items-center justify-center px-4 gap-2 text-xs font-medium text-white"
         style={{ background: "#29a366" }}
@@ -299,7 +300,7 @@ export default function SellLandingPage() {
         <span>Free to join. Built for Oriental Mindoro sellers.</span>
       </div>
 
-      {/* ── Nav bar ─────────────────────────────────────────────── */}
+      {/* -- Nav bar ----------------------------------------------- */}
       <header
         className="sticky top-0 z-50 bg-white border-b border-black/[0.06]"
         onMouseLeave={() => setActiveNav(null)}
@@ -330,13 +331,13 @@ export default function SellLandingPage() {
             {!user ? (
               <>
                 <button
-                  onClick={() => openAuthModal("signin")}
+                  onClick={() => goToAuth("signin")}
                   className="hidden sm:flex h-10 px-5 items-center rounded-lg border border-black/[0.10] text-base font-semibold text-[#555] hover:bg-[#f2f2f0] transition-colors"
                 >
                   Log in
                 </button>
                 <button
-                  onClick={() => openAuthModal("signup")}
+                  onClick={() => goToAuth("signup")}
                   className="h-10 px-5 rounded-lg text-base font-semibold text-white transition-opacity hover:opacity-90"
                   style={{ background: "#29a366" }}
                 >
@@ -385,7 +386,7 @@ export default function SellLandingPage() {
             </a>
           ))}
           <button
-            onClick={() => { setMobileMenuOpen(false); openAuthModal("signin"); }}
+            onClick={() => { setMobileMenuOpen(false); goToAuth("signin"); }}
             className="px-3 py-2.5 rounded-xl text-sm text-[#555] hover:bg-[#f2f2f0] font-medium transition-colors text-left"
           >
             Log in
@@ -393,7 +394,7 @@ export default function SellLandingPage() {
         </div>
       )}
 
-      {/* ── Hero ─────────────────────────────────────────────── */}
+      {/* -- Hero ----------------------------------------------- */}
       <section className="px-4 md:px-8 pt-14 pb-16 md:pt-20 md:pb-24">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col lg:flex-row items-center gap-12">
@@ -419,7 +420,7 @@ export default function SellLandingPage() {
                 </button>
                 {!user && (
                   <button
-                    onClick={() => openAuthModal("signin")}
+                    onClick={() => goToAuth("signin")}
                     className="flex items-center justify-center h-14 px-10 rounded-full border border-black/[0.12] text-base font-semibold text-[#555] hover:bg-[#f2f2f0] transition-colors"
                   >
                     Already a seller? Log in
@@ -446,7 +447,7 @@ export default function SellLandingPage() {
         </div>
       </section>
 
-      {/* ── Benefits ─────────────────────────────────────────── */}
+      {/* -- Benefits ------------------------------------------- */}
       <section id="benefits" className="py-14 px-4 md:px-8 bg-[#f9fafb]">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
@@ -464,7 +465,7 @@ export default function SellLandingPage() {
         </div>
       </section>
 
-      {/* ── How it works ─────────────────────────────────────── */}
+      {/* -- How it works --------------------------------------- */}
       <section id="how-it-works" className="py-14 px-4 md:px-8">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-10">
@@ -487,7 +488,7 @@ export default function SellLandingPage() {
         </div>
       </section>
 
-      {/* ── Categories ───────────────────────────────────────── */}
+      {/* -- Categories ----------------------------------------- */}
       <section id="categories" className="py-14 px-4 md:px-8 bg-[#f9fafb]">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-semibold text-[#111] mb-2">What can you sell?</h2>
@@ -506,7 +507,7 @@ export default function SellLandingPage() {
         </div>
       </section>
 
-      {/* ── Final CTA ────────────────────────────────────────── */}
+      {/* -- Final CTA ------------------------------------------ */}
       <section
         className="py-16 md:py-20 px-4 md:px-8 text-center"
         style={{ background: "linear-gradient(135deg, #064e3b 0%, #065f46 100%)" }}
@@ -525,7 +526,7 @@ export default function SellLandingPage() {
             <p className="text-xs text-white/40 mt-4">
               Already a seller?{" "}
               <button
-                onClick={() => openAuthModal("signin")}
+                onClick={() => goToAuth("signin")}
                 className="text-white/70 hover:text-white underline underline-offset-2"
               >
                 Log in

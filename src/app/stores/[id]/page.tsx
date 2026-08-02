@@ -1,794 +1,662 @@
 ﻿"use client";
 
-import React, { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import React, { use, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
-  Mail,
-  RotateCw,
-  Loader2,
-  Eye,
-  EyeOff,
-  ShieldCheck,
-  User,
-  Phone,
   MapPin,
-  Lock,
+  Star,
+  MessageSquare,
+  UserPlus,
+  UserCheck,
   Check,
-  X,
+  Users,
+  Package,
+  ShoppingCart,
+  Navigation,
 } from "lucide-react";
-import { useUser, useSupabase } from "@/supabase";
-import { initiateEmailSignUp } from "@/supabase/auth";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  useDoc,
+  useCollection,
+  useStableMemo,
+  useSupabase,
+  useUser,
+} from "@/supabase";
 
-function PasswordStrength({ password }: { password: string }) {
-  const checks = [
-    { label: "At least 8 characters", pass: password.length >= 8 },
-    { label: " letter", pass: /[A-Z]/.test(password) },
-    { label: "Lowercase letter", pass: /[a-z]/.test(password) },
-    { label: "Number", pass: /\d/.test(password) },
-    { label: "Special character", pass: /[^A-Za-z0-9]/.test(password) },
-  ];
-  const score = checks.filter((c) => c.pass).length;
-  const colors = [
-    "#e0e0e0",
-    "#e53e3e",
-    "#f6ad55",
-    "#ecc94b",
-    "#68d391",
-    "#29a366",
-  ];
-  const labels = ["", "Very weak", "Weak", "Fair", "Good", "Strong"];
+type Store = {
+  id: string;
+  name?: string;
+  description?: string;
+  imageUrl?: string;
+  coverUrl?: string;
+  city?: string;
+  municipality?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  category?: string;
+  rating?: number;
+  followerCount?: number;
+  verified?: boolean;
+  ownerId?: string;
+  sellerId?: string;
+  createdAt?: string;
+};
 
-  if (!password) return null;
-  return (
-    <div className="mt-2 space-y-2">
-      <div className="flex gap-1">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div
-            key={i}
-            className="flex-1 h-1 rounded-full transition-all"
-            style={{ background: i <= score ? colors[score] : "#e8e8e8" }}
-          />
-        ))}
-      </div>
-      <p className="text-xs font-medium" style={{ color: colors[score] }}>
-        {labels[score]}
-      </p>
-      <div className="space-y-1">
-        {checks.map((c) => (
-          <div key={c.label} className="flex items-center gap-1.5">
-            {c.pass ? (
-              <Check className="h-3 w-3 text-[#29a366]" />
-            ) : (
-              <X className="h-3 w-3 text-[#ccc]" />
-            )}
-            <span
-              className={`text-[11px] ${c.pass ? "text-[#29a366]" : "text-[#aaa]"}`}
-            >
-              {c.label}
-            </span>
+type Product = {
+  id: string;
+  name: string;
+  imageUrl?: string;
+  price?: number;
+  pricePerNight?: number;
+  storeId?: string;
+  category?: string;
+  city?: string;
+  municipality?: string;
+  sold?: number;
+  totalSales?: number;
+  rating?: number;
+  status?: string;
+  isAuction?: boolean;
+  currentBid?: number;
+  startingBid?: number;
+  createdAt?: string;
+};
+
+export default function StoreDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id: storeId } = use(params);
+  const supabase = useSupabase();
+  const { user } = useUser();
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+
+  const storeRef = useStableMemo(
+    () => ({ table: "stores", id: storeId }),
+    [storeId],
+  );
+  const { data: storeData, isLoading: storeLoading } = useDoc(storeRef);
+  const store = storeData as Store | null;
+
+  const productsQuery = useStableMemo(
+    () => ({
+      table: "facilities",
+      filters: [{ column: "sellerId", op: "eq" as const, value: storeId }],
+    }),
+    [storeId],
+  );
+  const { data: productsBySeller, isLoading: productsLoading } =
+    useCollection(productsQuery);
+
+  const productsByStoreQuery = useStableMemo(
+    () => ({
+      table: "facilities",
+      filters: [{ column: "storeId", op: "eq" as const, value: storeId }],
+    }),
+    [storeId],
+  );
+  const { data: productsByStore } = useCollection(productsByStoreQuery);
+
+  const products = useMemo(() => {
+    const map = new Map<string, any>();
+    (productsBySeller ?? []).forEach((p: any) => map.set(p.id, p));
+    (productsByStore ?? []).forEach((p: any) => map.set(p.id, p));
+    return Array.from(map.values());
+  }, [productsBySeller, productsByStore]);
+
+  const followersQuery = useStableMemo(
+    () => ({
+      table: "store_followers",
+      filters: [{ column: "storeId", op: "eq" as const, value: storeId }],
+    }),
+    [storeId],
+  );
+  const { data: followers } = useCollection(followersQuery);
+
+  const followerCount = followers?.length ?? store?.followerCount ?? 0;
+  const isFollowing = useMemo(
+    () => !!user && followers?.some((f: any) => f.userId === user.uid),
+    [user, followers],
+  );
+  const isOwn = !!user && user.uid === storeId;
+
+  const productList = (products as Product[]) ?? [];
+  const productCount = productList.length;
+  const totalSold = productList.reduce(
+    (s, p) => s + Number(p.sold || 0),
+    0,
+  );
+
+  const [tab, setTab] = useState<"all" | "new" | "location">("all");
+  const sortedProducts = useMemo(() => {
+    if (tab === "new") {
+      return [...productList].sort((a, b) => {
+        const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return tb - ta;
+      });
+    }
+    return productList;
+  }, [tab, productList]);
+
+  const hasCoords =
+    store?.latitude != null &&
+    store?.longitude != null &&
+    !Number.isNaN(Number(store.latitude)) &&
+    !Number.isNaN(Number(store.longitude));
+
+  const handleFollow = async () => {
+    if (!user) {
+      router.push(`/login?redirect=/stores/${storeId}`);
+      return;
+    }
+    if (isOwn || busy) return;
+    setBusy(true);
+    try {
+      if (isFollowing) {
+        await supabase
+          .from("store_followers")
+          .delete()
+          .eq("storeId", storeId)
+          .eq("userId", user.uid);
+      } else {
+        await supabase
+          .from("store_followers")
+          .insert({ storeId, userId: user.uid });
+      }
+    } catch (err) {
+      console.error("[stores] follow error", err);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleMessage = async () => {
+    if (!user) {
+      router.push(`/login?redirect=/stores/${storeId}`);
+      return;
+    }
+    if (isOwn) return;
+    const sellerId = store?.sellerId || store?.ownerId || storeId;
+    const conversationId = `${sellerId}_${user.uid}`;
+    const now = new Date().toISOString();
+    try {
+      await supabase.from("conversations").upsert(
+        {
+          id: conversationId,
+          userId: user.uid,
+          name: store?.name || "Seller",
+          avatar: store?.imageUrl || null,
+          recipientId: sellerId,
+          lastMessage: "",
+          updatedAt: now,
+        },
+        { onConflict: "id" },
+      );
+    } catch (err) {
+      console.error("[stores] message error", err);
+    }
+    router.push(`/messages?id=${conversationId}`);
+  };
+
+  if (storeLoading || !store) {
+    return (
+      <div
+        className="flex min-h-screen flex-col"
+        style={{ backgroundColor: "#f2f2f0" }}
+      >
+        <Header />
+        <main className="flex-grow mx-auto px-4 md:px-8 pt-6 md:pt-8 pb-24 w-full max-w-[1280px]">
+          <Skeleton className="h-40 md:h-56 w-full rounded-[5px]" />
+          <div className="flex gap-4 mt-6">
+            <Skeleton className="h-20 w-20 md:h-24 md:w-24 rounded-full" />
+            <div className="flex-1 space-y-2 mt-2">
+              <Skeleton className="h-5 w-56 rounded-full" />
+              <Skeleton className="h-3 w-40 rounded-full" />
+              <Skeleton className="h-3 w-32 rounded-full" />
+            </div>
           </div>
-        ))}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mt-10">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-[5px] overflow-hidden">
+                <Skeleton className="aspect-square w-full rounded-none" />
+                <div className="p-2.5 space-y-1.5">
+                  <Skeleton className="h-3 w-3/4 rounded-full" />
+                  <Skeleton className="h-3 w-1/2 rounded-full" />
+                  <Skeleton className="h-3.5 w-1/3 rounded-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
+        <Footer />
       </div>
+    );
+  }
+
+  const cover =
+    store.coverUrl ||
+    store.imageUrl ||
+    "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&q=80";
+  const avatar =
+    store.imageUrl ||
+    "https://i.pinimg.com/736x/d2/98/4e/d2984ec4b65a8568eab3dc2b640fc58e.jpg";
+  const location = store.city || store.municipality;
+
+  return (
+    <div
+      className="flex min-h-screen flex-col"
+      style={{ backgroundColor: "#f2f2f0" }}
+    >
+      <Header />
+
+      <main className="flex-grow mx-auto px-4 md:px-8 pt-4 md:pt-6 pb-24 w-full max-w-[1280px]">
+        <button
+          onClick={() => router.back()}
+          className="inline-flex items-center gap-1.5 text-xs text-[#666] hover:text-primary transition-colors mb-3"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back
+        </button>
+
+        {/* Store header card */}
+        <section className="bg-white rounded-[5px] overflow-hidden border border-black/[0.06]">
+          <div
+            className="relative w-full h-40 md:h-60 bg-neutral-200"
+            style={{
+              backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.4)), url(${cover})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+
+          <div className="px-5 md:px-8 pb-6">
+            {/* Identity row */}
+            <div className="flex items-end gap-4 md:gap-5 -mt-12 md:-mt-16">
+              <div className="relative h-24 w-24 md:h-32 md:w-32 rounded-full ring-4 ring-white shadow-lg overflow-hidden shrink-0 bg-white">
+                <Image
+                  src={avatar}
+                  alt={store.name || "Store"}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              </div>
+
+              <div className="flex-1 min-w-0 pb-1">
+                <div className="flex items-center gap-1.5">
+                  <h1 className="text-xl md:text-[26px] font-bold text-[#111] leading-tight truncate">
+                    {store.name || "Unnamed store"}
+                  </h1>
+                  {store.verified && (
+                    <span
+                      className="inline-flex items-center justify-center h-[18px] w-[18px] md:h-5 md:w-5 rounded-full bg-[#1877f2] text-white shrink-0"
+                      title="Verified seller"
+                      aria-label="Verified seller"
+                    >
+                      <Check className="h-3 w-3" strokeWidth={4} />
+                    </span>
+                  )}
+                </div>
+                {location && (
+                  <div className="flex items-center gap-1 mt-1 text-[12px] text-[#666]">
+                    <MapPin className="h-3.5 w-3.5" />
+                    {location}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-wrap gap-2 mt-5">
+              {!isOwn && (
+                <>
+                  <button
+                    onClick={handleFollow}
+                    disabled={busy}
+                    className={`inline-flex items-center gap-1.5 text-xs font-semibold px-5 py-2 rounded-full border transition-colors disabled:opacity-60 ${
+                      isFollowing
+                        ? "border-black/10 bg-white text-[#111] hover:bg-[#f5f5f5]"
+                        : "border-primary bg-primary text-white hover:bg-primary/90"
+                    }`}
+                  >
+                    {isFollowing ? (
+                      <>
+                        <UserCheck className="h-3.5 w-3.5" />
+                        Following
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="h-3.5 w-3.5" />
+                        Follow
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={handleMessage}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-5 py-2 rounded-full border border-black/10 bg-white text-[#111] hover:bg-[#f5f5f5] transition-colors"
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    Message
+                  </button>
+                </>
+              )}
+              {isOwn && (
+                <Link
+                  href="/seller/profile"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-5 py-2 rounded-full border border-black/10 bg-white text-[#111] hover:bg-[#f5f5f5] transition-colors"
+                >
+                  Manage store
+                </Link>
+              )}
+            </div>
+
+            {/* Stat strip */}
+            {(() => {
+              const stats: {
+                key: string;
+                icon: React.ReactNode;
+                label: string;
+                value: string;
+              }[] = [];
+              if (followerCount > 0)
+                stats.push({
+                  key: "followers",
+                  icon: <Users className="h-3.5 w-3.5" />,
+                  label: "Followers",
+                  value: followerCount.toLocaleString(),
+                });
+              if (productCount > 0)
+                stats.push({
+                  key: "products",
+                  icon: <Package className="h-3.5 w-3.5" />,
+                  label: "Products",
+                  value: productCount.toLocaleString(),
+                });
+              if (store.rating != null)
+                stats.push({
+                  key: "rating",
+                  icon: (
+                    <Star className="h-3.5 w-3.5 fill-[#f59e0b] text-[#f59e0b]" />
+                  ),
+                  label: "Rating",
+                  value: Number(store.rating).toFixed(1),
+                });
+              if (totalSold > 0)
+                stats.push({
+                  key: "sold",
+                  icon: <ShoppingCart className="h-3.5 w-3.5" />,
+                  label: "Sold",
+                  value: totalSold.toLocaleString(),
+                });
+              if (stats.length === 0) return null;
+              return (
+                <div
+                  className={`grid gap-3 mt-6 pt-5 border-t border-black/[0.06]`}
+                  style={{
+                    gridTemplateColumns: `repeat(${Math.min(stats.length, 4)}, minmax(0, 1fr))`,
+                  }}
+                >
+                  {stats.map((s) => (
+                    <Stat
+                      key={s.key}
+                      icon={s.icon}
+                      label={s.label}
+                      value={s.value}
+                    />
+                  ))}
+                </div>
+              );
+            })()}
+
+            {store.description && (
+              <p className="text-sm text-[#555] leading-relaxed whitespace-pre-line mt-6">
+                {store.description}
+              </p>
+            )}
+          </div>
+        </section>
+
+        {/* Location */}
+
+        {/* Tabs */}
+        {(() => {
+          const tabs: { key: "all" | "new" | "location"; label: string }[] = [
+            { key: "all", label: "All products" },
+            { key: "new", label: "New listings" },
+          ];
+          if (hasCoords || location) {
+            tabs.push({ key: "location", label: "Location" });
+          }
+          const activeTab = tabs.some((t) => t.key === tab) ? tab : "all";
+          return (
+            <section className="mt-8">
+              <div className="flex items-center justify-between gap-3 border-b border-black/[0.08] mb-5">
+                <div className="flex items-center gap-6">
+                  {tabs.map((t) => {
+                    const active = activeTab === t.key;
+                    return (
+                      <button
+                        key={t.key}
+                        onClick={() => setTab(t.key)}
+                        className={`relative py-3 text-sm font-medium transition-colors ${
+                          active
+                            ? "text-primary"
+                            : "text-[#666] hover:text-[#111]"
+                        }`}
+                      >
+                        {t.label}
+                        <span
+                          className={`absolute left-0 right-0 -bottom-px h-[2px] rounded-full transition-colors ${
+                            active ? "bg-primary" : "bg-transparent"
+                          }`}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+                {activeTab !== "location" && (
+                  <span className="text-[11px] text-[#999] hidden sm:inline">
+                    {productCount} listing{productCount === 1 ? "" : "s"}
+                  </span>
+                )}
+              </div>
+
+              {activeTab === "location" ? (
+                <div className="bg-white rounded-[5px] overflow-hidden border border-black/[0.06]">
+                  <div className="flex items-center justify-between px-5 md:px-6 py-4 gap-3">
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-semibold text-[#111] flex items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5 text-primary" />
+                        Store location
+                      </h3>
+                      {location && (
+                        <p className="text-[12px] text-[#666] mt-0.5 truncate">
+                          {store.address
+                            ? `${store.address} · ${location}`
+                            : location}
+                        </p>
+                      )}
+                    </div>
+                    {hasCoords && (
+                      <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${store.latitude},${store.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-full bg-primary text-white hover:bg-primary/90 transition-colors shrink-0"
+                      >
+                        <Navigation className="h-3.5 w-3.5" />
+                        Directions
+                      </a>
+                    )}
+                  </div>
+                  {hasCoords ? (
+                    <div className="relative w-full h-72 md:h-[420px] border-t border-black/[0.06]">
+                      <iframe
+                        title={`${store.name || "Store"} location`}
+                        src={`https://maps.google.com/maps?q=${store.latitude},${store.longitude}&z=15&output=embed`}
+                        className="absolute inset-0 w-full h-full"
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                      />
+                    </div>
+                  ) : (
+                    <div className="border-t border-black/[0.06] py-12 text-center text-sm text-[#999] italic">
+                      Precise map coordinates not set for this store.
+                    </div>
+                  )}
+                </div>
+              ) : productsLoading ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="bg-white rounded-[5px] overflow-hidden"
+                    >
+                      <Skeleton className="aspect-square w-full rounded-none" />
+                      <div className="p-2.5 space-y-1.5">
+                        <Skeleton className="h-3 w-3/4 rounded-full" />
+                        <Skeleton className="h-3 w-1/2 rounded-full" />
+                        <Skeleton className="h-3.5 w-1/3 rounded-full" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : productList.length === 0 ? (
+                <div className="bg-white rounded-[5px] border border-black/[0.06] py-16 text-center">
+                  <Package className="h-8 w-8 text-[#ccc] mx-auto mb-2" />
+                  <p className="text-sm text-[#999] italic">
+                    This store hasn&apos;t listed any products yet.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                  {sortedProducts.map((product) => {
+                const productLoc = product.city || product.municipality;
+                return (
+                  <div
+                    key={product.id}
+                    className="bg-white rounded-[5px] overflow-hidden border border-black/[0.06] flex flex-col group transition-all duration-200 hover:shadow-md hover:border-black/[0.12]"
+                  >
+                    <Link
+                      href={`/book/${product.id}`}
+                      className="relative block aspect-square overflow-hidden"
+                    >
+                      {product.imageUrl && (
+                        <Image
+                          src={product.imageUrl}
+                          alt={product.name}
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                      )}
+                      <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all duration-200">
+                        <div className="h-7 w-7 rounded-full bg-white/90 shadow flex items-center justify-center">
+                          <ShoppingCart className="h-3.5 w-3.5 text-primary" />
+                        </div>
+                      </div>
+                    </Link>
+                    <div className="p-3 flex flex-col gap-2">
+                      <Link href={`/book/${product.id}`}>
+                        <div className="flex items-start gap-1.5">
+                          {product.isAuction && (
+                            <span className="shrink-0 text-[10px] font-bold rounded-[3px] px-1.5 py-0.5 bg-orange-500 text-white mt-[2px]">
+                              Auction
+                            </span>
+                          )}
+                          <h3 className="text-sm font-normal leading-snug line-clamp-2 hover:text-primary transition-colors">
+                            {product.name}
+                          </h3>
+                        </div>
+                      </Link>
+                      <p className="text-[17px] text-primary font-normal leading-none">
+                        ₱
+                        {(product.isAuction
+                          ? product.currentBid || product.startingBid || 0
+                          : product.price || product.pricePerNight || 0
+                        ).toLocaleString()}
+                      </p>
+                      {productLoc && (
+                        <span className="text-xs text-[#999] truncate -mt-1">
+                          {productLoc}
+                        </span>
+                      )}
+                      <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-0.5">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Star
+                              key={i}
+                              className="h-3 w-3"
+                              style={{
+                                fill:
+                                  i < Math.round(product.rating ?? 0)
+                                    ? "#f59e0b"
+                                    : "#e5e7eb",
+                                color:
+                                  i < Math.round(product.rating ?? 0)
+                                    ? "#f59e0b"
+                                    : "#e5e7eb",
+                              }}
+                            />
+                          ))}
+                        </div>
+                        {product.rating ? (
+                          <span className="text-[11px] text-[#bbb]">
+                            (
+                            {(
+                              product.sold ??
+                              product.totalSales ??
+                              0
+                            ).toLocaleString()}
+                            )
+                          </span>
+                        ) : (
+                          <span className="text-[11px] text-[#ccc]">
+                            No ratings
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+          );
+        })()}
+      </main>
+
+      <Footer />
     </div>
   );
 }
 
-const inputClass =
-  "w-full bg-white border border-[#e0e0e0] rounded-xl px-4 py-3.5 text-sm text-[#111] placeholder:text-[#bbb] outline-none focus:border-[#29a366] focus:ring-2 focus:ring-[#29a366]/15 transition-all disabled:opacity-50";
-const iconInputClass =
-  "w-full bg-white border border-[#e0e0e0] rounded-xl pl-11 pr-4 py-3.5 text-sm text-[#111] placeholder:text-[#bbb] outline-none focus:border-[#29a366] focus:ring-2 focus:ring-[#29a366]/15 transition-all disabled:opacity-50";
-const labelClass = "block text-xs font-semibold text-[#555] mb-1.5 ml-1";
-
-export default function SignUpPage() {
-  const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    mobile: "",
-    province: "",
-    provinceCode: "",
-    city: "",
-    cityCode: "",
-    barangay: "",
-    street: "",
-    password: "",
-    confirmPassword: "",
-  });
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [provinces, setProvinces] = useState<any[]>([]);
-  const [cities, setCities] = useState<any[]>([]);
-  const [barangays, setBarangays] = useState<any[]>([]);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [resending, setResending] = useState(false);
-  const [showEmailConfirm, setShowEmailConfirm] = useState(false);
-
-  const supabase = useSupabase();
-  const { user, isUserLoading } = useUser();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (user && !isUserLoading && !showEmailConfirm) router.push("/profile");
-  }, [user, isUserLoading, router, showEmailConfirm]);
-
-  useEffect(() => {
-    fetch("https://psgc.gitlab.io/api/provinces.json")
-      .then((r) => r.json())
-      .then((d) =>
-        setProvinces(d.sort((a: any, b: any) => a.name.localeCompare(b.name))),
-      )
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    if (formData.provinceCode) {
-      fetch(
-        `https://psgc.gitlab.io/api/provinces/${formData.provinceCode}/municipalities.json`,
-      )
-        .then((r) => r.json())
-        .then((d) => {
-          setCities(d);
-          setBarangays([]);
-        })
-        .catch(() => {});
-    }
-  }, [formData.provinceCode]);
-
-  useEffect(() => {
-    if (formData.cityCode) {
-      fetch(
-        `https://psgc.gitlab.io/api/municipalities/${formData.cityCode}/barangays.json`,
-      )
-        .then((r) => r.json())
-        .then((d) => setBarangays(d))
-        .catch(() => {});
-    }
-  }, [formData.cityCode]);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
-    const { name, value } = e.target;
-    if (name === "province") {
-      const sel = provinces.find((p) => p.name === value);
-      setFormData((prev) => ({
-        ...prev,
-        province: value,
-        provinceCode: sel?.code || "",
-        city: "",
-        cityCode: "",
-        barangay: "",
-      }));
-    } else if (name === "city") {
-      const sel = cities.find((c) => c.name === value);
-      setFormData((prev) => ({
-        ...prev,
-        city: value,
-        cityCode: sel?.code || "",
-        barangay: "",
-      }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const nextStep = (from: number) => {
-    if (
-      from === 1 &&
-      (!formData.firstName.trim() ||
-        !formData.lastName.trim() ||
-        !formData.email.includes("@"))
-    ) {
-      setError("Please fill in your name and a valid email.");
-      return;
-    }
-    if (
-      from === 2 &&
-      (!formData.mobile ||
-        formData.mobile.length < 10 ||
-        !formData.province ||
-        !formData.city ||
-        !formData.barangay)
-    ) {
-      setError("Please complete your contact and address details.");
-      return;
-    }
-    setError("");
-    setStep((p) => p + 1);
-    window.scrollTo(0, 0);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-    if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters.");
-      return;
-    }
-    setError("");
-    setLoading(true);
-    try {
-      const result = await initiateEmailSignUp(
-        supabase,
-        formData.email,
-        formData.password,
-      );
-      localStorage.setItem(
-        "pendingProfile",
-        JSON.stringify({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          mobile: formData.mobile,
-          province: formData.province,
-          city: formData.city,
-          barangay: formData.barangay,
-          street: formData.street,
-        }),
-      );
-      if (result.needsConfirmation) {
-        router.push("/confirm-email");
-        return;
-      }
-      if (result.user) {
-        await supabase.from("users").upsert(
-          {
-            id: result.user.id,
-            name: `${formData.firstName} ${formData.lastName}`.trim(),
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            email: formData.email,
-            mobile: formData.mobile || "",
-            province: formData.province || "",
-            city: formData.city || "",
-            barangay: formData.barangay || "",
-            street: formData.street || "",
-            role: "buyer",
-            createdAt: new Date().toISOString(),
-          },
-          { onConflict: "id" },
-        );
-        localStorage.removeItem("pendingProfile");
-      }
-    } catch (err: any) {
-      const msg: string = err?.message || "";
-      if (
-        err instanceof TypeError ||
-        msg.toLowerCase().includes("failed to fetch") ||
-        msg.toLowerCase().includes("networkerror")
-      ) {
-        setError(
-          "Unable to connect. Please check your internet connection and try again.",
-        );
-      } else if (msg.includes("already registered")) {
-        setError("This email is already registered. Try signing in instead.");
-      } else {
-        setError(msg || "Something went wrong. Please try again.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResend = async () => {
-    setResending(true);
-    try {
-      await initiateEmailSignUp(supabase, formData.email, formData.password);
-    } catch {
-    } finally {
-      setResending(false);
-    }
-  };
-
-  if (isUserLoading) return null;
-
-  // Email confirm screen
-  if (showEmailConfirm)
-    return (
-      <div
-        className="min-h-screen flex items-center justify-center p-6"
-        style={{ backgroundColor: "#f2f2f0" }}
-      >
-        <div className="bg-white rounded-2xl p-10 w-full max-w-[420px] shadow-sm border border-[#eee] text-center">
-          <div className="w-16 h-16 rounded-full bg-[#29a366]/10 flex items-center justify-center mx-auto mb-5">
-            <Mail className="h-8 w-8 text-[#29a366]" />
-          </div>
-          <h2 className="text-xl font-semibold text-[#111] mb-2">
-            Check your email
-          </h2>
-          <p className="text-sm text-[#777] mb-1">
-            We sent a confirmation link to
-          </p>
-          <p className="text-sm font-bold text-[#111] mb-5">{formData.email}</p>
-          <p className="text-xs text-[#aaa] mb-7">
-            Click the link in the email to verify your account, then come back
-            to sign in.
-          </p>
-          <button
-            onClick={handleResend}
-            disabled={resending}
-            className="w-full bg-[#f4f4f2] text-[#111] font-semibold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 mb-4 disabled:opacity-60 transition-colors hover:bg-[#ebebeb]"
-          >
-            {resending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <RotateCw className="h-4 w-4" />
-            )}
-            {resending ? "Resending..." : "Resend confirmation email"}
-          </button>
-          <Link
-            href="/login"
-            className="text-sm text-[#29a366] font-semibold hover:underline"
-          >
-            Go to Sign In
-          </Link>
-        </div>
-      </div>
-    );
-
-  const stepLabels = ["Personal", "Address", "Security"];
-
+function Stat({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: "#f2f2f0" }}>
-      {/* Left panel */}
-      <div
-        className="hidden lg:flex flex-col justify-between w-[440px] shrink-0 relative overflow-hidden"
-        style={{
-          background: "linear-gradient(160deg, #1a6b40 0%, #29a366 100%)",
-        }}
-      >
-        <div className="absolute inset-0 opacity-10">
-          <Image
-            src="/assets/fruits.jpg"
-            alt=""
-            fill
-            className="object-cover"
-          />
-        </div>
-        <div className="relative z-10 p-10">
-          <Link href="/" className="flex items-center gap-2">
-            <Image
-              src="/brand-icon.png"
-              alt="Emoorm"
-              width={40}
-              height={40}
-              style={{ objectFit: "contain" }}
-            />
-            <span
-              className="text-2xl font-normal text-white"
-              style={{ fontFamily: "Inter, sans-serif" }}
-            >
-              Emoorm
-            </span>
-          </Link>
-        </div>
-        <div className="relative z-10 p-10 space-y-4">
-          {[
-            "Support local farmers and producers",
-            "Get farm-fresh products delivered",
-            "Secure & verified transactions",
-          ].map((t) => (
-            <div
-              key={t}
-              className="flex items-center gap-3 text-white/80 text-sm"
-            >
-              <div className="h-5 w-5 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                <Check className="h-3 w-3 text-white" />
-              </div>
-              {t}
-            </div>
-          ))}
-        </div>
+    <div className="flex flex-col gap-0.5">
+      <div className="flex items-center gap-1 text-[11px] text-[#888] uppercase tracking-wide">
+        {icon}
+        {label}
       </div>
-
-      {/* Right panel */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-12 overflow-y-auto">
-        {/* Mobile brand */}
-        <Link href="/" className="flex items-center gap-2 mb-6 lg:hidden">
-          <Image
-            src="/brand-icon.png"
-            alt="Emoorm"
-            width={32}
-            height={32}
-            style={{ objectFit: "contain" }}
-          />
-          <span
-            className="text-xl font-normal text-[#1a6b40]"
-            style={{ fontFamily: "Inter, sans-serif" }}
-          >
-            Emoorm
-          </span>
-        </Link>
-
-        <div className="w-full max-w-[480px]">
-          <div className="mb-6">
-            <h1
-              className="text-2xl font-semibold text-[#111] mb-1"
-              style={{ fontFamily: "Inter, sans-serif" }}
-            >
-              Create your account
-            </h1>
-            <p className="text-sm text-[#777]">
-              Join the local marketplace of Oriental Mindoro
-            </p>
-          </div>
-
-          {/* Step progress */}
-          <div className="flex items-center gap-0 mb-8">
-            {stepLabels.map((label, i) => {
-              const num = i + 1;
-              const done = step > num;
-              const active = step === num;
-              return (
-                <React.Fragment key={label}>
-                  <div className="flex flex-col items-center gap-1">
-                    <div
-                      className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                        done
-                          ? "bg-[#29a366] text-white"
-                          : active
-                            ? "bg-[#1a6b40] text-white"
-                            : "bg-[#e8e8e8] text-[#aaa]"
-                      }`}
-                    >
-                      {done ? <Check className="h-4 w-4" /> : num}
-                    </div>
-                    <span
-                      className={`text-[10px] font-medium ${active ? "text-[#1a6b40]" : done ? "text-[#29a366]" : "text-[#bbb]"}`}
-                    >
-                      {label}
-                    </span>
-                  </div>
-                  {i < 2 && (
-                    <div
-                      className={`flex-1 h-px mx-2 mb-4 transition-all ${done ? "bg-[#29a366]" : "bg-[#e8e8e8]"}`}
-                    />
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </div>
-
-          {error && (
-            <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4 mb-5">
-              <div className="h-4 w-4 rounded-full bg-red-500 flex items-center justify-center shrink-0 mt-0.5">
-                <span className="text-white text-[9px] font-bold">!</span>
-              </div>
-              <p className="text-red-700 text-sm">{error}</p>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Step 1 — Personal */}
-            {step === 1 && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className={labelClass}>First name</label>
-                    <div className="relative">
-                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#aaa]" />
-                      <input
-                        type="text"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleChange}
-                        placeholder="Juan"
-                        autoComplete="given-name"
-                        className={iconInputClass}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className={labelClass}>Last name</label>
-                    <input
-                      type="text"
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleChange}
-                      placeholder="Dela Cruz"
-                      autoComplete="family-name"
-                      className={inputClass}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className={labelClass}>Email address</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#aaa]" />
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="juan@example.com"
-                      autoComplete="email"
-                      className={iconInputClass}
-                    />
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => nextStep(1)}
-                  className="w-full text-white font-semibold py-3.5 rounded-xl text-sm transition-all mt-2"
-                  style={{ background: "#29a366" }}
-                >
-                  Continue
-                </button>
-              </div>
-            )}
-
-            {/* Step 2 — Address */}
-            {step === 2 && (
-              <div className="space-y-4">
-                <div>
-                  <label className={labelClass}>Mobile number</label>
-                  <div className="flex items-center bg-white border border-[#e0e0e0] rounded-xl focus-within:border-[#29a366] focus-within:ring-2 focus-within:ring-[#29a366]/15 transition-all">
-                    <Phone className="h-4 w-4 text-[#aaa] ml-4 shrink-0" />
-                    <span className="pl-2 pr-1 text-sm font-bold text-[#777] select-none">
-                      +63
-                    </span>
-                    <input
-                      type="tel"
-                      name="mobile"
-                      value={formData.mobile}
-                      onChange={(e) => {
-                        const v = e.target.value
-                          .replace(/\D/g, "")
-                          .slice(0, 10);
-                        setFormData((p) => ({ ...p, mobile: v }));
-                      }}
-                      placeholder="9123456789"
-                      maxLength={10}
-                      autoComplete="tel"
-                      className="flex-1 bg-transparent border-none py-3.5 pr-4 text-sm text-[#111] outline-none placeholder:text-[#bbb]"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className={labelClass}>Province</label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#aaa] pointer-events-none" />
-                    <select
-                      name="province"
-                      value={formData.province}
-                      onChange={handleChange}
-                      className="w-full bg-white border border-[#e0e0e0] rounded-xl pl-10 pr-4 py-3.5 text-sm text-[#111] outline-none appearance-none cursor-pointer focus:border-[#29a366] focus:ring-2 focus:ring-[#29a366]/15 transition-all"
-                    >
-                      <option value="" disabled>
-                        Select province
-                      </option>
-                      {provinces.map((p) => (
-                        <option key={p.code} value={p.name}>
-                          {p.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className={labelClass}>City / Municipality</label>
-                    <select
-                      name="city"
-                      value={formData.city}
-                      onChange={handleChange}
-                      disabled={!formData.provinceCode}
-                      className="w-full bg-white border border-[#e0e0e0] rounded-xl px-4 py-3.5 text-sm text-[#111] outline-none appearance-none cursor-pointer focus:border-[#29a366] focus:ring-2 focus:ring-[#29a366]/15 transition-all disabled:opacity-50"
-                    >
-                      <option value="" disabled>
-                        Select city
-                      </option>
-                      {cities.map((c) => (
-                        <option key={c.code} value={c.name}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className={labelClass}>Barangay</label>
-                    <select
-                      name="barangay"
-                      value={formData.barangay}
-                      onChange={handleChange}
-                      disabled={!formData.cityCode}
-                      className="w-full bg-white border border-[#e0e0e0] rounded-xl px-4 py-3.5 text-sm text-[#111] outline-none appearance-none cursor-pointer focus:border-[#29a366] focus:ring-2 focus:ring-[#29a366]/15 transition-all disabled:opacity-50"
-                    >
-                      <option value="" disabled>
-                        Select barangay
-                      </option>
-                      {barangays.map((b) => (
-                        <option key={b.name} value={b.name}>
-                          {b.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label className={labelClass}>
-                    Street / House No.{" "}
-                    <span className="text-[#bbb] font-normal">(optional)</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="street"
-                    value={formData.street}
-                    onChange={handleChange}
-                    placeholder="123 Rizal St."
-                    autoComplete="street-address"
-                    className={inputClass}
-                  />
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setError("");
-                      setStep((p) => p - 1);
-                    }}
-                    className="flex-1 bg-[#f0f0ee] text-[#555] font-semibold py-3.5 rounded-xl text-sm hover:bg-[#e8e8e6] transition-colors"
-                  >
-                    Back
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => nextStep(2)}
-                    className="flex-1 text-white font-semibold py-3.5 rounded-xl text-sm transition-all"
-                    style={{ background: "#29a366" }}
-                  >
-                    Continue
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Step 3 — Security */}
-            {step === 3 && (
-              <div className="space-y-4">
-                <div>
-                  <label className={labelClass}>Password</label>
-                  <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#aaa]" />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      name="password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      placeholder="••••••••"
-                      disabled={loading}
-                      autoComplete="new-password"
-                      className="w-full bg-white border border-[#e0e0e0] rounded-xl pl-11 pr-12 py-3.5 text-sm text-[#111] placeholder:text-[#bbb] outline-none focus:border-[#29a366] focus:ring-2 focus:ring-[#29a366]/15 transition-all disabled:opacity-50"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((v) => !v)}
-                      tabIndex={-1}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#aaa] hover:text-[#555] transition-colors"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
-                  </div>
-                  <PasswordStrength password={formData.password} />
-                </div>
-                <div>
-                  <label className={labelClass}>Confirm password</label>
-                  <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#aaa]" />
-                    <input
-                      type={showConfirm ? "text" : "password"}
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                      placeholder="••••••••"
-                      disabled={loading}
-                      autoComplete="new-password"
-                      className="w-full bg-white border border-[#e0e0e0] rounded-xl pl-11 pr-12 py-3.5 text-sm text-[#111] placeholder:text-[#bbb] outline-none focus:border-[#29a366] focus:ring-2 focus:ring-[#29a366]/15 transition-all disabled:opacity-50"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirm((v) => !v)}
-                      tabIndex={-1}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#aaa] hover:text-[#555] transition-colors"
-                    >
-                      {showConfirm ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
-                  </div>
-                  {formData.confirmPassword &&
-                    formData.password !== formData.confirmPassword && (
-                      <p className="text-xs text-red-500 mt-1.5 ml-1">
-                        Passwords do not match
-                      </p>
-                    )}
-                </div>
-                <p className="text-xs text-[#aaa] leading-relaxed">
-                  By creating an account you agree to our{" "}
-                  <Link
-                    href="/terms"
-                    className="text-[#29a366] hover:underline"
-                  >
-                    Terms of Service
-                  </Link>{" "}
-                  and{" "}
-                  <Link
-                    href="/privacy"
-                    className="text-[#29a366] hover:underline"
-                  >
-                    Privacy Policy
-                  </Link>
-                  .
-                </p>
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setError("");
-                      setStep((p) => p - 1);
-                    }}
-                    disabled={loading}
-                    className="flex-1 bg-[#f0f0ee] text-[#555] font-semibold py-3.5 rounded-xl text-sm hover:bg-[#e8e8e6] transition-colors disabled:opacity-50"
-                  >
-                    Back
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="flex-1 text-white font-semibold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 disabled:opacity-70 transition-all"
-                    style={{ background: "#29a366" }}
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" /> Creating...
-                      </>
-                    ) : (
-                      "Create Account"
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
-          </form>
-
-          <p className="text-center text-sm text-[#777] mt-6">
-            Already a member?{" "}
-            <Link
-              href="/login"
-              className="text-[#29a366] font-semibold hover:underline"
-            >
-              Sign in
-            </Link>
-          </p>
-
-          <div className="flex items-center justify-center gap-1.5 mt-6 text-xs text-[#bbb]">
-            <ShieldCheck className="h-3.5 w-3.5" />
-            Protected by 256-bit SSL encryption
-          </div>
-
-          <Link
-            href="/"
-            className="flex items-center justify-center gap-1.5 text-xs text-[#bbb] hover:text-[#555] transition-colors mt-3"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Back to Home
-          </Link>
-        </div>
-      </div>
+      <div className="text-sm font-semibold text-[#111]">{value}</div>
     </div>
   );
 }

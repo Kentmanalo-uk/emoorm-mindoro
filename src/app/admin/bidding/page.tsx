@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -159,9 +159,9 @@ export default function AdminBiddingPage() {
 
   return (
     <AdminLayout>
-      <div className="max-w-7xl mx-auto p-6 md:p-8 w-full pt-6 md:pt-32 pb-24 space-y-8 md:space-y-10">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6 pt-6 pb-8 space-y-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-normal font-headline tracking-[-0.05em] text-black dark:text-white">
+          <h1 className="text-lg font-semibold text-[#111]">
             Auction Oversight
           </h1>
           <p className="text-sm text-muted-foreground font-normal">
@@ -202,7 +202,7 @@ export default function AdminBiddingPage() {
             return (
               <Card
                 key={s.label}
-                className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03]"
+                className="border border-black/[0.06] rounded-xl bg-white"
               >
                 <CardContent className="p-5">
                   <div className={`p-2.5 rounded-2xl ${s.color} w-fit mb-3`}>
@@ -211,7 +211,7 @@ export default function AdminBiddingPage() {
                   <p className="text-xs text-muted-foreground font-medium">
                     {s.label}
                   </p>
-                  <p className="text-2xl font-normal font-headline tracking-[-0.05em]">
+                  <p className="text-xl font-bold text-[#111]">
                     {s.value}
                   </p>
                 </CardContent>
@@ -264,7 +264,7 @@ export default function AdminBiddingPage() {
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03]">
+          <Card className="border border-black/[0.06] rounded-xl bg-white">
             <CardContent className="py-20 text-center">
               <Gavel className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-sm text-muted-foreground">No auctions found</p>
@@ -282,7 +282,7 @@ export default function AdminBiddingPage() {
               return (
                 <Card
                   key={auction.id}
-                  className="shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-black/[0.02] rounded-[32px] bg-white dark:bg-white/[0.03] overflow-hidden"
+                  className="border border-black/[0.06] rounded-xl bg-white overflow-hidden"
                 >
                   <CardContent className="p-5">
                     <div className="flex items-center gap-4">
@@ -316,12 +316,12 @@ export default function AdminBiddingPage() {
                           <span>
                             Current bid:{" "}
                             <span className="font-bold text-foreground">
-                              ₱
+                              ?
                               {Number(auction.currentBid || 0).toLocaleString()}
                             </span>
                           </span>
                           <span>
-                            Starting: ₱
+                            Starting: ?
                             {Number(auction.startingBid || 0).toLocaleString()}
                           </span>
                           <span className="flex items-center gap-1">
@@ -350,7 +350,7 @@ export default function AdminBiddingPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className="w-48 rounded-2xl p-1 shadow-[0_20px_50px_rgba(0,0,0,0.1)] bg-white/80 backdrop-blur-xl border-none"
+                          className="w-48 rounded-xl p-1 bg-white border border-black/[0.06] shadow-md"
                         >
                           <DropdownMenuItem
                             className="rounded-xl gap-3 px-3 py-2.5 cursor-pointer"

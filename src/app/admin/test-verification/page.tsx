@@ -219,7 +219,7 @@ export default function TestVerificationPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-8 pt-32">
+    <div className="max-w-[1280px] mx-auto px-4 md:px-6 pt-6 pb-8 space-y-4">
       <h1 className="text-3xl font-bold mb-2">
         🔍 Verification System Diagnostic
       </h1>

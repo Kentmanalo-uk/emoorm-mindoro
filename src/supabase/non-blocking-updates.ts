@@ -2,6 +2,15 @@
 
 import { SupabaseClient } from '@supabase/supabase-js';
 
+function logDbError(op: string, table: string, err: any) {
+  console.error(`[Supabase] ${op} error on ${table}:`, {
+    message: err?.message,
+    code: err?.code,
+    details: err?.details,
+    hint: err?.hint,
+  });
+}
+
 /**
  * Upsert a document (insert or update).
  * @param supabase Supabase client
@@ -13,7 +22,7 @@ export function setDocumentNonBlocking(supabase: SupabaseClient, table: string, 
     .from(table)
     .upsert(data, { onConflict: 'id' })
     .then(({ error }) => {
-      if (error) console.error(`[Supabase] Upsert error on ${table}:`, error.message);
+      if (error) logDbError('Upsert', table, error);
     });
 }
 
@@ -31,7 +40,7 @@ export function addDocumentNonBlocking(supabase: SupabaseClient, table: string, 
     .select()
     .then(({ data: rows, error }) => {
       if (error) {
-        console.error(`[Supabase] Insert error on ${table}:`, error.message);
+        logDbError('Insert', table, error);
         return undefined;
       }
       return rows?.[0];
@@ -51,7 +60,7 @@ export function updateDocumentNonBlocking(supabase: SupabaseClient, table: strin
     .update(data)
     .eq('id', id)
     .then(({ error }) => {
-      if (error) console.error(`[Supabase] Update error on ${table}:`, error.message);
+      if (error) logDbError('Update', table, error);
     });
 }
 
@@ -67,6 +76,6 @@ export function deleteDocumentNonBlocking(supabase: SupabaseClient, table: strin
     .delete()
     .eq('id', id)
     .then(({ error }) => {
-      if (error) console.error(`[Supabase] Delete error on ${table}:`, error.message);
+      if (error) logDbError('Delete', table, error);
     });
 }
